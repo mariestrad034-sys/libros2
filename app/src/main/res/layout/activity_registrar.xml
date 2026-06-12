@@ -1,119 +1,137 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="20dp"
-    android:background="#F5F5F5">
+    android:background="@color/colorFondo">
 
-    <ScrollView
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="25dp"
+        android:gravity="center_horizontal">
 
-        <LinearLayout
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="📝 Registrar Libro"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            android:textColor="@color/colorTextoPrincipal"
+            android:layout_marginBottom="25dp" />
+
+        <EditText
+            android:id="@+id/etTitulo"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:hint="Título del libro"
+            android:textColorHint="#757575"
+            android:textColor="#212121"
+            android:background="@android:drawable/editbox_background"
+            android:backgroundTint="#FFFFFF"
+            android:paddingLeft="15dp"
+            android:inputType="text"
+            android:layout_marginBottom="15dp"/>
+
+        <EditText
+            android:id="@+id/etAutor"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:hint="Autor del libro"
+            android:textColorHint="#757575"
+            android:textColor="#212121"
+            android:background="@android:drawable/editbox_background"
+            android:backgroundTint="#FFFFFF"
+            android:paddingLeft="15dp"
+            android:inputType="text"
+            android:layout_marginBottom="20dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Selecciona el o los géneros:"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:textColor="@color/colorTextoPrincipal"
+            android:layout_gravity="left"
+            android:layout_marginBottom="15dp"/>
+
+        <CheckBox
+            android:id="@+id/cbRomance"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:text="Romance"
+            android:textSize="16sp"
+            android:textColor="@color/colorTextoPrincipal"
+            android:buttonTint="@color/colorTextoPrincipal" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="📝 Registrar Libro"
-                android:textSize="22sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="20dp"
-                android:textColor="#333333"/>
+        <CheckBox
+            android:id="@+id/cbAccion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Acción"
+            android:textSize="16sp"
+            android:textColor="@color/colorTextoPrincipal"
+            android:buttonTint="@color/colorTextoPrincipal" />
 
-            <EditText
-                android:id="@+id/etTitulo"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Título del libro"
-                android:background="@drawable/caja_redondeada"
-                android:padding="10dp"
-                android:layout_marginBottom="10dp"/>
+        <CheckBox
+            android:id="@+id/cbDrama"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Drama"
+            android:textSize="16sp"
+            android:textColor="@color/colorTextoPrincipal"
+            android:buttonTint="@color/colorTextoPrincipal" />
 
-            <EditText
-                android:id="@+id/etAutor"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Autor"
-                android:background="@drawable/caja_redondeada"
-                android:padding="10dp"
-                android:layout_marginBottom="15dp"/>
+        <CheckBox
+            android:id="@+id/cbComedia"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Comedia"
+            android:textSize="16sp"
+            android:textColor="@color/colorTextoPrincipal"
+            android:buttonTint="@color/colorTextoPrincipal"
+            android:layout_marginBottom="20dp"/>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Selecciona el o los géneros:"
-                android:textStyle="bold"
-                android:textColor="#555555"
-                android:layout_marginBottom="5dp"/>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#CCCCCC"
+            android:layout_marginBottom="20dp"/>
 
-            <CheckBox
-                android:id="@+id/cbRomance"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Romance" />
+        <CheckBox
+            android:id="@+id/cbPrestado"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Prestado"
+            android:textSize="16sp"
+            android:textColor="@color/colorTextoPrincipal"
+            android:buttonTint="@color/colorTextoPrincipal"
+            android:layout_marginBottom="15dp"/>
 
-            <CheckBox
-                android:id="@+id/cbAccion"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Acción" />
+        <EditText
+            android:id="@+id/etPersona"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:hint="¿A quién se le prestó? (Obligatorio)"
+            android:textColorHint="#757575"
+            android:textColor="#212121"
+            android:background="@android:drawable/editbox_background"
+            android:backgroundTint="#FFFFFF"
+            android:paddingLeft="15dp"
+            android:inputType="text"
+            android:visibility="gone"
+            android:layout_marginBottom="30dp"/>
 
-            <CheckBox
-                android:id="@+id/cbDrama"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Drama" />
+        <Button
+            android:id="@+id/btnGuardar"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:text="GUARDAR EN BIBLIOTECA"
+            android:backgroundTint="#4CAF50"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold"/>
 
-            <CheckBox
-                android:id="@+id/cbComedia"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Comedia" />
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#DDDDDD"
-                android:layout_marginTop="15dp"
-                android:layout_marginBottom="15dp"/>
-
-            <CheckBox
-                android:id="@+id/cbPrestado"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Prestado"
-                android:layout_marginBottom="10dp"/>
-
-            <EditText
-                android:id="@+id/etPersona"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="¿A quién se prestó? (Obligatorio si está prestado)"
-                android:background="@drawable/caja_redondeada"
-                android:padding="10dp"
-                android:layout_marginBottom="20dp"/>
-
-            <Button
-                android:id="@+id/btnRegistrar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Guardar en Biblioteca"
-                android:backgroundTint="#4CAF50"
-                android:textColor="#FFFFFF"/>
-
-            <TextView
-                android:id="@+id/tvResultado"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:textSize="16sp"
-                android:textColor="#4CAF50"
-                android:gravity="center"/>
-
-        </LinearLayout>
-    </ScrollView>
-</LinearLayout>
+    </LinearLayout>
+</ScrollView>

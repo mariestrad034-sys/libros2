@@ -1,6 +1,7 @@
 package com.example.libros2
 
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.libros2.databinding.ActivityRegistrarBinding
@@ -22,7 +23,19 @@ class RegistrarActivity : AppCompatActivity() {
         System.loadLibrary("libros2")
         rutaAlmacenamiento = File(filesDir, "biblioteca.txt").absolutePath
 
-        binding.btnRegistrar.setOnClickListener {
+        // Detectar en tiempo real si marcan o desmarcan "Prestado"
+        binding.cbPrestado.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                // Si está marcado, aparece el campo con visibilidad VISIBLE
+                binding.etPersona.visibility = View.VISIBLE
+            } else {
+                // Si se desmarca, se esconde (GONE) y se limpia el texto automáticamente
+                binding.etPersona.visibility = View.GONE
+                binding.etPersona.text.clear()
+            }
+        }
+
+        binding.btnGuardar.setOnClickListener {
             val titulo = binding.etTitulo.text.toString().trim()
             val autor = binding.etAutor.text.toString().trim()
             val persona = binding.etPersona.text.toString().trim()
@@ -34,13 +47,13 @@ class RegistrarActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            // 2. CORRECCIÓN SOLICITADA: Validar que si está prestado, ponga el nombre "a juro"
+            // 2. Validar que si está prestado, ponga el nombre obligatoriamente
             if (prestado && persona.isEmpty()) {
                 Toast.makeText(this, "❌ Debes colocar el nombre de la persona a quien se lo prestaste", Toast.LENGTH_LONG).show()
                 return@setOnClickListener
             }
 
-            // 3. Juntar los géneros seleccionados en un solo texto (ej: "Romance, Drama")
+            // 3. Juntar los géneros seleccionados en un solo texto
             val listaGeneros = mutableListOf<String>()
             if (binding.cbRomance.isChecked) listaGeneros.add("Romance")
             if (binding.cbAccion.isChecked) listaGeneros.add("Acción")
@@ -57,9 +70,11 @@ class RegistrarActivity : AppCompatActivity() {
 
             // Mandamos todo a C++
             val resultado = registrarLibro(rutaAlmacenamiento, titulo, autor, persona, prestado, generosTexto)
-            binding.tvResultado.text = resultado
 
-            // Limpiar el formulario
+            // Mostramos el resultado de C++ en un mensaje flotante (Toast)
+            Toast.makeText(this, resultado, Toast.LENGTH_LONG).show()
+
+            // ✅ CORREGIDO: Se eliminó la línea "Kleid()" que causaba el error
             binding.etTitulo.text.clear()
             binding.etAutor.text.clear()
             binding.etPersona.text.clear()
@@ -68,6 +83,9 @@ class RegistrarActivity : AppCompatActivity() {
             binding.cbAccion.isChecked = false
             binding.cbDrama.isChecked = false
             binding.cbComedia.isChecked = false
+
+            // Aseguramos que el campo se esconda de nuevo al reiniciar el formulario
+            binding.etPersona.visibility = View.GONE
         }
     }
 }

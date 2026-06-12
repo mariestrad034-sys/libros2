@@ -5,43 +5,112 @@
     android:orientation="vertical"
     android:gravity="center"
     android:padding="30dp"
-    android:background="#F5F5F5">
+    android:background="@color/colorFondo"> <TextView
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="📚 Biblioteca 2.0"
+    android:textSize="28sp"
+    android:textStyle="bold"
+    android:textColor="@color/colorTextoPrincipal" android:layout_marginBottom="15dp"/>
 
-    <TextView
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/switchModoOscuro"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="📚 Biblioteca 2.0"
-        android:textSize="28sp"
-        android:textStyle="bold"
-        android:textColor="#333333"
-        android:layout_marginBottom="40dp"/>
+        android:text="🌙 Modo Oscuro "
+        android:textSize="16sp"
+        android:textColor="@color/colorTextoPrincipal" android:layout_marginBottom="25dp"
+        android:gravity="center_vertical"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="15dp"
+        android:background="@drawable/caja_redondeada"
+        android:backgroundTint="@color/colorTarjeta" android:layout_marginBottom="35dp"
+        android:elevation="2dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="📊 Estado de la Biblioteca"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:textColor="@color/colorTextoSecundario" android:layout_marginBottom="10dp"/>
+
+        <TextView
+            android:id="@+id/tvTotalLibros"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Total de libros: --"
+            android:textSize="14sp"
+            android:textColor="@color/colorTextoPrincipal" android:layout_marginBottom="4dp"/>
+
+        <TextView
+            android:id="@+id/tvLibrosDisponibles"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Disponibles en estante: --"
+            android:textSize="14sp"
+            android:textColor="#4CAF50"
+            android:layout_marginBottom="4dp"/>
+
+        <TextView
+            android:id="@+id/tvLibrosPrestados"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Prestados actualmente: --"
+            android:textSize="14sp"
+            android:textColor="#FF9800"/>
+    </LinearLayout>
 
     <Button
         android:id="@+id/btnMenuRegistrar"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="55dp"
         android:text="Registrar Nuevo Libro"
         android:backgroundTint="#4CAF50"
         android:textColor="#FFFFFF"
         android:textSize="16sp"
-        android:layout_marginBottom="15dp"/>
+        android:layout_marginBottom="12dp"/>
 
     <Button
         android:id="@+id/btnMenuVer"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="55dp"
         android:text="Ver Catálogo de Libros"
         android:backgroundTint="#2196F3"
         android:textColor="#FFFFFF"
         android:textSize="16sp"
-        android:layout_marginBottom="15dp"/>
+        android:layout_marginBottom="12dp"/>
 
     <Button
         android:id="@+id/btnMenuEliminar"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="55dp"
         android:text="Eliminar un Libro"
         android:backgroundTint="#F44336"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:layout_marginBottom="12dp"/>
+
+    <Button
+        android:id="@+id/btnMenuPrestar"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:text="Prestar un Libro"
+        android:backgroundTint="#FF9800"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:layout_marginBottom="12dp"/>
+
+    <Button
+        android:id="@+id/btnMenuDevolver"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:text="Devolver un Libro"
+        android:backgroundTint="#009688"
         android:textColor="#FFFFFF"
         android:textSize="16sp"/>
 </LinearLayout>

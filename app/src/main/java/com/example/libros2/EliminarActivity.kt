@@ -21,7 +21,8 @@ class EliminarActivity : AppCompatActivity() {
         System.loadLibrary("libros2")
         rutaAlmacenamiento = File(filesDir, "biblioteca.txt").absolutePath
 
-        binding.btnEliminar.setOnClickListener {
+        // ✅ CORREGIDO: Se cambiaron los IDs para que coincidan con activity_eliminar.xml
+        binding.btnConfirmarEliminar.setOnClickListener {
             val tituloAEliminar = binding.etEliminarTitulo.text.toString().trim()
 
             if (tituloAEliminar.isEmpty()) {
@@ -30,7 +31,7 @@ class EliminarActivity : AppCompatActivity() {
             }
 
             val resultado = eliminarLibro(rutaAlmacenamiento, tituloAEliminar)
-            binding.tvResultado.text = resultado
+            binding.tvResultadoEliminar.text = resultado
             binding.etEliminarTitulo.text.clear()
         }
     }
