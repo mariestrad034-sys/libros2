@@ -11,7 +11,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="🗑️ Eliminar un Libro"
+        android:text="🔄 Devolver un Libro"
         android:textSize="24sp"
         android:textStyle="bold"
         android:textColor="@color/colorTextoPrincipal"
@@ -20,7 +20,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Selecciona los libros que deseas eliminar:"
+        android:text="Selecciona los libros que te están devolviendo:"
         android:textColor="@color/colorTextoPrincipal"
         android:layout_marginBottom="10dp" />
 
@@ -34,7 +34,7 @@
         android:backgroundTint="@color/colorTarjeta">
 
         <LinearLayout
-            android:id="@+id/llLibrosEliminar"
+            android:id="@+id/llLibrosPrestados"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -42,17 +42,17 @@
     </ScrollView>
 
     <Button
-        android:id="@+id/btnConfirmarEliminar"
+        android:id="@+id/btnConfirmarDevolver"
         android:layout_width="match_parent"
         android:layout_height="55dp"
-        android:text="Eliminar de la Biblioteca"
-        android:backgroundTint="#F44336"
+        android:text="Confirmar Devolución"
+        android:backgroundTint="#009688"
         android:textColor="#FFFFFF"
         android:textSize="16sp"
         android:layout_marginBottom="15dp"/>
 
     <TextView
-        android:id="@+id/tvResultadoEliminar"
+        android:id="@+id/tvResultadoDevolver"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text=""

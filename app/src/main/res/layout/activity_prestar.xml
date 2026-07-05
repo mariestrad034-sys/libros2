@@ -11,7 +11,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="🗑️ Eliminar un Libro"
+        android:text="🚀 Prestar un Libro"
         android:textSize="24sp"
         android:textStyle="bold"
         android:textColor="@color/colorTextoPrincipal"
@@ -20,7 +20,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Selecciona los libros que deseas eliminar:"
+        android:text="Selecciona los libros a prestar:"
         android:textColor="@color/colorTextoPrincipal"
         android:layout_marginBottom="10dp" />
 
@@ -34,25 +34,38 @@
         android:backgroundTint="@color/colorTarjeta">
 
         <LinearLayout
-            android:id="@+id/llLibrosEliminar"
+            android:id="@+id/llLibrosDisponibles"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="10dp" />
     </ScrollView>
 
-    <Button
-        android:id="@+id/btnConfirmarEliminar"
+    <EditText
+        android:id="@+id/etPrestarPersona"
         android:layout_width="match_parent"
         android:layout_height="55dp"
-        android:text="Eliminar de la Biblioteca"
-        android:backgroundTint="#F44336"
+        android:hint="Nombre del alumno/usuario"
+        android:background="@android:drawable/editbox_background"
+        android:backgroundTint="@color/colorTarjeta"
+        android:textColor="@color/colorTextoPrincipal"
+        android:textColorHint="@color/colorTextoSecundario"
+        android:paddingLeft="15dp"
+        android:inputType="text"
+        android:layout_marginBottom="25dp"/>
+
+    <Button
+        android:id="@+id/btnConfirmarPrestar"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:text="Confirmar Préstamo"
+        android:backgroundTint="#FF9800"
         android:textColor="#FFFFFF"
         android:textSize="16sp"
         android:layout_marginBottom="15dp"/>
 
     <TextView
-        android:id="@+id/tvResultadoEliminar"
+        android:id="@+id/tvResultadoPrestar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text=""
