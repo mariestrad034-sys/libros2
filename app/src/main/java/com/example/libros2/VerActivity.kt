@@ -1,23 +1,29 @@
 package com.example.libros2
 
+import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
+import android.view.Gravity
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.example.libros2.databinding.ActivityVerBinding
 import java.io.File
 
 class VerActivity: AppCompatActivity() {
     private lateinit var binding: ActivityVerBinding
     private lateinit var rutaAlmacenamiento: String
+    private var librosFiltradosRaw: String = ""
 
-    // Función nativa que llamará a C++
     external fun filtrarLibrosPorGenero(ruta: String, generoFiltro: String): String
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,104 +40,163 @@ class VerActivity: AppCompatActivity() {
 
         binding.spinnerGeneros.adapter = adapter
 
-        // Detectar cuándo el usuario cambia de opción en el filtro
+        // Buscador en tiempo real
+        binding.etBuscarTitulo.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                actualizarInterfazCatalogo(s.toString().trim())
+            }
+            override fun afterTextChanged(s: Editable?) {}
+        })
+
         binding.spinnerGeneros.onItemSelectedListener = object: AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 val generoSeleccionado = opcionesFiltro[position]
-
-                // Solicitamos los libros filtrados a C++
-                val librosFiltrados = filtrarLibrosPorGenero(rutaAlmacenamiento, generoSeleccionado)
-
-                // Limpiamos el catálogo visual antes de mostrar los nuevos resultados
-                binding.containerLibros.removeAllViews()
-
-                // Si C++ responde que no hay libros o está vacío
-                if (librosFiltrados.startsWith("No hay libros") || librosFiltrados.trim().isEmpty()) {
-                    val tvError = TextView(this@VerActivity).apply {
-                        text = librosFiltrados
-                        textSize = 16f
-                        setTextColor(Color.GRAY)
-                        setPadding(0, 20, 0, 0)
-                    }
-                    binding.containerLibros.addView(tvError)
-                    return
-                }
-
-                // Convertimos las medidas DP a Píxeles para controlar los tamaños desde código
-                val escala = resources.displayMetrics.density
-                val anchoImagen = (90 * escala).toInt()
-                val altoImagen = (120 * escala).toInt()
-                val margen = (12 * escala).toInt()
-
-                // Separamos la cadena de libros que viene desde C++ por el carácter ";"
-                val listaLibros = librosFiltrados.split(";")
-
-                for (libroRaw in listaLibros) {
-                    if (libroRaw.trim().isEmpty()) continue
-
-                    // Separamos las propiedades de cada libro por el carácter "|"
-                    val datos = libroRaw.split("|")
-                    if (datos.size >= 5) {
-                        val titulo = datos[0]
-                        val autor = datos[1]
-                        val generos = datos[2]
-                        val estado = datos[3]
-                        val rutaImg = datos[4].trim()
-
-                        // 1. Creamos la fila horizontal para el libro (Fila = Foto + Textos)
-                        val filaLibro = LinearLayout(this@VerActivity).apply {
-                            orientation = LinearLayout.HORIZONTAL
-                            setPadding(0, margen, 0, margen)
-                        }
-
-                        // 2. Creamos el visor de la Imagen de portada
-                        val ivPortada = ImageView(this@VerActivity).apply {
-                            layoutParams = LinearLayout.LayoutParams(anchoImagen, altoImagen).apply {
-                                setMargins(0, 0, margen, 0)
-                            }
-                            scaleType = ImageView.ScaleType.CENTER_CROP
-
-                            // Si el libro tiene una imagen válida guardada, la cargamos
-                            if (rutaImg != "sin_imagen" && File(rutaImg).exists()) {
-                                setImageURI(Uri.fromFile(File(rutaImg)))
-                            } else {
-                                // Si no tiene, se le pone un fondo gris estético por defecto
-                                setBackgroundColor(Color.parseColor("#D3D3D3"))
-                            }
-                        }
-
-                        // 3. Creamos el bloque de textos (Título, Autor, etc.)
-                        val bloqueTexto = LinearLayout(this@VerActivity).apply {
-                            orientation = LinearLayout.VERTICAL
-                            layoutParams = LinearLayout.LayoutParams(
-                                LinearLayout.LayoutParams.MATCH_PARENT,
-                                LinearLayout.LayoutParams.WRAP_CONTENT
-                            )
-                        }
-
-                        val tvInfo = TextView(this@VerActivity).apply {
-                            text = "📌 Título: $titulo\n✍️ Autor: $autor\n🎭 Géneros: $generos\n💡 Estado: $estado"
-                            textSize = 15f
-                            setLineSpacing(4f, 1f)
-                        }
-                        bloqueTexto.addView(tvInfo)
-
-                        // 4. Juntamos todo en la fila y lo añadimos al contenedor principal
-                        filaLibro.addView(ivPortada)
-                        filaLibro.addView(bloqueTexto)
-                        binding.containerLibros.addView(filaLibro)
-
-                        // 5. Agregamos una línea divisoria sutil entre libro y libro
-                        val lineaDivisoria = View(this@VerActivity).apply {
-                            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 2)
-                            setBackgroundColor(Color.parseColor("#E0E0E0"))
-                        }
-                        binding.containerLibros.addView(lineaDivisoria)
-                    }
-                }
+                librosFiltradosRaw = filtrarLibrosPorGenero(rutaAlmacenamiento, generoSeleccionado)
+                actualizarInterfazCatalogo(binding.etBuscarTitulo.text.toString().trim())
             }
-
             override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+    }
+
+    private fun actualizarInterfazCatalogo(query: String) {
+        binding.containerLibros.removeAllViews()
+
+        if (librosFiltradosRaw.startsWith("No hay libros") || librosFiltradosRaw.trim().isEmpty()) {
+            val tvError = TextView(this).apply {
+                text = "No hay libros registrados con este género."
+                textSize = 16f
+                setTextColor(ContextCompat.getColor(this@VerActivity, R.color.colorTextoSecundario))
+                setPadding(0, 20, 0, 0)
+            }
+            binding.containerLibros.addView(tvError)
+            return
+        }
+
+        val escala = resources.displayMetrics.density
+        val anchoImagen = (90 * escala).toInt()
+        val altoImagen = (120 * escala).toInt()
+        val margen = (12 * escala).toInt()
+
+        val listaLibros = librosFiltradosRaw.split(";")
+        var librosMostradosContador = 0
+
+        for (libroRaw in listaLibros) {
+            if (libroRaw.trim().isEmpty()) continue
+
+            val datos = libroRaw.split("|")
+            if (datos.size >= 5) {
+                val titulo = datos[0]
+                val autor = datos[1]
+                val generos = datos[2]
+                val estado = datos[3]
+                val rutaImg = datos[4].trim()
+
+                if (query.isNotEmpty() && !titulo.contains(query, ignoreCase = true)) {
+                    continue
+                }
+
+                librosMostradosContador++
+
+                // 1. Fila horizontal contenedor de la tarjeta
+                val filaLibro = LinearLayout(this).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    setPadding(0, margen, 0, margen)
+                    gravity = Gravity.CENTER_VERTICAL // Alinea verticalmente los componentes
+                }
+
+                // 2. Imagen de portada
+                val ivPortada = ImageView(this).apply {
+                    layoutParams = LinearLayout.LayoutParams(anchoImagen, altoImagen).apply {
+                        setMargins(0, 0, margen, 0)
+                    }
+                    scaleType = ImageView.ScaleType.CENTER_CROP
+
+                    if (rutaImg != "sin_imagen" && File(rutaImg).exists()) {
+                        setImageURI(Uri.fromFile(File(rutaImg)))
+                    } else {
+                        setBackgroundColor(Color.parseColor("#424242"))
+                    }
+                }
+
+                // 3. MEJORA: Bloque de textos con peso (weight = 1f) para empujar el botón a la derecha
+                val bloqueTexto = LinearLayout(this).apply {
+                    orientation = LinearLayout.VERTICAL
+                    layoutParams = LinearLayout.LayoutParams(
+                        0, // Ancho cero para que el peso tome el control
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        1f // Ocupa todo el espacio disponible del centro
+                    )
+                }
+
+                val tvInfo = TextView(this).apply {
+                    text = "📌 Título: $titulo\n✍️ Autor: $autor\n🎭 Géneros: $generos\n💡 Estado: $estado"
+                    textSize = 14f
+                    setTextColor(ContextCompat.getColor(this@VerActivity, R.color.colorTextoPrincipal))
+                    setLineSpacing(4f, 1f)
+                }
+                bloqueTexto.addView(tvInfo)
+
+                // 4. NUEVO COMPONENTE: Botón dinámico para hacer publicidad y rentar
+                val btnCompartir = Button(this).apply {
+                    text = "Rentar\n📢"
+                    textSize = 12f
+                            setTextColor(Color.WHITE)
+                    // Un color naranja/celeste corporativo que resalta genial tanto en modo claro como oscuro
+                    setBackgroundColor(Color.parseColor("#009688"))
+                    setPadding(10, 5, 10, 5)
+
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    ).apply {
+                        setMargins(margen, 0, 0, 0)
+                    }
+
+                    // Lógica de Envío de Publicidad
+                    setOnClickListener {
+                        // Construimos un mensaje llamativo con formato negrita para WhatsApp (*texto*)
+                        val mensajePublicidad = "¡Hola! Te recomiendo este increíble libro de mi colección física disponible para renta: \n\n" +
+                                "📚 *Título:* $titulo\n" +
+                                "✍️ *Autor:* $autor\n" +
+                                "🎭 *Géneros:* $generos\n" +
+                                "✨ *Disponibilidad actual:* $estado\n\n" +
+                                "¡Escríbeme al privado si te interesa leerlo para coordinar el alquiler! 📖 Separa el tuyo antes de que se lo lleven."
+
+                        val intentCompartir = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(Intent.EXTRA_TEXT, mensajePublicidad)
+                        }
+
+                        // Abre el menú nativo para elegir WhatsApp, Telegram, Mensajes, etc.
+                        context.startActivity(Intent.createChooser(intentCompartir, "Promocionar libro en:"))
+                    }
+                }
+
+                // 5. Juntamos todo en la fila ordenadamente
+                filaLibro.addView(ivPortada)
+                filaLibro.addView(bloqueTexto)
+                filaLibro.addView(btnCompartir) // El botón aparece limpio al extremo derecho
+                binding.containerLibros.addView(filaLibro)
+
+                // Línea divisoria sutil
+                val lineaDivisoria = View(this).apply {
+                    layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 2)
+                    setBackgroundColor(Color.parseColor("#2C2C2C"))
+                }
+                binding.containerLibros.addView(lineaDivisoria)
+            }
+        }
+
+        if (librosMostradosContador == 0 && query.isNotEmpty()) {
+            val tvSinResultados = TextView(this).apply {
+                text = "🔍 No se encontraron libros que coincidan con \"$query\""
+                textSize = 15f
+                setTextColor(ContextCompat.getColor(this@VerActivity, R.color.colorTextoSecundario))
+                setPadding(0, 40, 0, 0)
+                gravity = Gravity.CENTER
+            }
+            binding.containerLibros.addView(tvSinResultados)
         }
     }
 }

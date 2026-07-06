@@ -22,14 +22,27 @@
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:background="@android:drawable/btn_dropdown"
-        android:layout_marginBottom="20dp" />
+        android:layout_marginBottom="15dp" />
+
+    <!-- NUEVO COMPONENTE: Buscador adaptado para Modo Oscuro -->
+    <EditText
+        android:id="@+id/etBuscarTitulo"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:hint="🔍 Buscar por título..."
+        android:background="@android:drawable/editbox_background"
+        android:backgroundTint="@color/colorTarjeta"
+        android:textColor="@color/colorTextoPrincipal"
+        android:textColorHint="@color/colorTextoSecundario"
+        android:paddingLeft="15dp"
+        android:inputType="text"
+        android:layout_marginBottom="15dp"/>
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1">
 
-        <!-- CONTENEDOR DINÁMICO: Aquí se irán metiendo las portadas y textos automáticamente -->
         <LinearLayout
             android:id="@+id/containerLibros"
             android:layout_width="match_parent"
