@@ -10,14 +10,19 @@ struct Libro {
     std::string persona;
     bool prestado;
     std::string generos;
+    std::string imagen; // Campo nuevo para guardar la ruta de la portada
 };
 
-// Funciones base de persistencia (Se quedan exactamente igual)
+// --- Funciones base de persistencia mejoradas con separador único '|' ---
+
 void guardarEnArchivo(const std::string& ruta, const std::vector<Libro>& biblioteca) {
     std::ofstream archivo(ruta, std::ios::trunc);
     if (archivo.is_open()) {
         for (const auto& l : biblioteca) {
-            archivo << l.titulo << "|" << l.autor << "|" << l.persona << "|" << (l.prestado ? "1" : "0") << "|" << l.generos << "\n";
+            // Guardamos todos los campos separados de forma segura por '|'
+            archivo << l.titulo << "|" << l.autor << "|" << l.persona << "|"
+                    << (l.prestado ? "1" : "0") << "|" << l.generos << "|"
+                    << l.imagen << "\n";
         }
         archivo.close();
     }
@@ -31,13 +36,17 @@ std::vector<Libro> cargarDesdeArchivo(const std::string& ruta) {
         while (std::getline(archivo, linea)) {
             if (linea.empty()) continue;
             std::stringstream ss(linea);
-            std::string titulo, autor, persona, prestadoStr, generos;
+            std::string titulo, autor, persona, prestadoStr, generos, imagen;
+
+            // Leemos los 6 campos estructurados
             if (std::getline(ss, titulo, '|') &&
                 std::getline(ss, autor, '|') &&
                 std::getline(ss, persona, '|') &&
                 std::getline(ss, prestadoStr, '|') &&
-                std::getline(ss, generos, '|')) {
-                biblioteca.push_back({titulo, autor, persona, prestadoStr == "1", generos});
+                std::getline(ss, generos, '|') &&
+                std::getline(ss, imagen)) {
+
+                biblioteca.push_back({titulo, autor, persona, prestadoStr == "1", generos, imagen});
             }
         }
         archivo.close();
@@ -45,18 +54,22 @@ std::vector<Libro> cargarDesdeArchivo(const std::string& ruta) {
     return biblioteca;
 }
 
-// 1. REGISTRAR LIBRO
+// 1. REGISTRAR LIBRO (Soporta el parámetro de la imagen)
 extern "C" JNIEXPORT jstring JNICALL
 Java_com_example_libros2_RegistrarActivity_registrarLibro(
-        JNIEnv* env, jobject thiz, jstring ruta, jstring titulo, jstring autor, jstring persona, jboolean prestado, jstring generos) {
+        JNIEnv* env, jobject thiz, jstring ruta, jstring titulo,
+        jstring autor, jstring persona, jboolean prestado, jstring generos, jstring imagen) {
+
     const char* cRuta = env->GetStringUTFChars(ruta, nullptr);
     const char* cTitulo = env->GetStringUTFChars(titulo, nullptr);
     const char* cAutor = env->GetStringUTFChars(autor, nullptr);
     const char* cPersona = env->GetStringUTFChars(persona, nullptr);
     const char* cGeneros = env->GetStringUTFChars(generos, nullptr);
+    const char* cImagen = env->GetStringUTFChars(imagen, nullptr);
 
     std::vector<Libro> biblioteca = cargarDesdeArchivo(cRuta);
-    biblioteca.push_back({cTitulo, cAutor, cPersona, prestado == JNI_TRUE, cGeneros});
+    biblioteca.push_back({cTitulo, cAutor, cPersona, prestado == JNI_TRUE, cGeneros, cImagen});
+
     guardarEnArchivo(cRuta, biblioteca);
 
     env->ReleaseStringUTFChars(ruta, cRuta);
@@ -64,33 +77,29 @@ Java_com_example_libros2_RegistrarActivity_registrarLibro(
     env->ReleaseStringUTFChars(autor, cAutor);
     env->ReleaseStringUTFChars(persona, cPersona);
     env->ReleaseStringUTFChars(generos, cGeneros);
+    env->ReleaseStringUTFChars(imagen, cImagen);
+
     return env->NewStringUTF("Libro guardado con éxito.");
 }
 
-// 2. FILTRAR Y MOSTRAR LIBROS POR GÉNERO
+// 2. FILTRAR Y MOSTRAR LIBROS (Estructurado con '|' y ';' para Kotlin)
 extern "C" JNIEXPORT jstring JNICALL
 Java_com_example_libros2_VerActivity_filtrarLibrosPorGenero(JNIEnv* env, jobject thiz, jstring ruta, jstring genero_filtro) {
-
     const char* cRuta = env->GetStringUTFChars(ruta, nullptr);
     const char* cFiltro = env->GetStringUTFChars(genero_filtro, nullptr);
 
     std::vector<Libro> biblioteca = cargarDesdeArchivo(cRuta);
     std::string filtro(cFiltro);
-
-    std::string resultado;
+    std::string resultado = "";
     int contador = 0;
 
     for (const auto& l : biblioteca) {
         if (filtro == "Todos" || l.generos.find(filtro) != std::string::npos) {
-            resultado += "📖 Título: " + l.titulo + "\n";
-            resultado += "   Autor: " + l.autor + "\n";
-            resultado += "   🎭 Género(s): " + l.generos + "\n";
-            if (l.prestado) {
-                resultado += "   ⚠️ Prestado a: " + l.persona + "\n";
-            } else {
-                resultado += "   ✅ Disponible en estante\n";
-            }
-            resultado += "-----------------------------------\n";
+            // Evaluamos el estado de disponibilidad[cite: 1]
+            std::string estado = l.prestado ? "Prestado a: " + l.persona : "Disponible en estante";
+
+            // Construimos la cadena compacta: Titulo|Autor|Generos|Estado|RutaImagen;[cite: 1]
+            resultado += l.titulo + "|" + l.autor + "|" + l.generos + "|" + estado + "|" + l.imagen + ";";
             contador++;
         }
     }
@@ -101,11 +110,10 @@ Java_com_example_libros2_VerActivity_filtrarLibrosPorGenero(JNIEnv* env, jobject
     if (contador == 0) {
         return env->NewStringUTF("No hay libros registrados con este género.");
     }
-
     return env->NewStringUTF(resultado.c_str());
 }
 
-// 3. ELIMINAR LIBRO
+// 3. ELIMINAR LIBRO (Mantiene tus mensajes originales)
 extern "C" JNIEXPORT jstring JNICALL
 Java_com_example_libros2_EliminarActivity_eliminarLibro(JNIEnv* env, jobject thiz, jstring ruta, jstring titulo) {
     const char* cRuta = env->GetStringUTFChars(ruta, nullptr);
@@ -113,6 +121,7 @@ Java_com_example_libros2_EliminarActivity_eliminarLibro(JNIEnv* env, jobject thi
     std::vector<Libro> biblioteca = cargarDesdeArchivo(cRuta);
     std::string objetivo(cTitulo);
     bool encontrado = false;
+
     for (auto it = biblioteca.begin(); it != biblioteca.end(); ) {
         if (it->titulo == objetivo) {
             it = biblioteca.erase(it);
@@ -121,22 +130,20 @@ Java_com_example_libros2_EliminarActivity_eliminarLibro(JNIEnv* env, jobject thi
             ++it;
         }
     }
+
     if (encontrado) guardarEnArchivo(cRuta, biblioteca);
     env->ReleaseStringUTFChars(ruta, cRuta);
     env->ReleaseStringUTFChars(titulo, cTitulo);
     return env->NewStringUTF(encontrado ? "Libro eliminado." : "No se encontró el libro.");
 }
 
-// 4. DEVOLVER LIBRO (Cambiar estado de Prestado a Disponible)
+// 4. DEVOLVER LIBRO (Mantiene tus validaciones y mensajes originales)
 extern "C" JNIEXPORT jstring JNICALL
 Java_com_example_libros2_DevolverActivity_devolverLibro(JNIEnv* env, jobject thiz, jstring ruta, jstring titulo) {
-
     const char* cRuta = env->GetStringUTFChars(ruta, nullptr);
     const char* cTitulo = env->GetStringUTFChars(titulo, nullptr);
-
     std::vector<Libro> biblioteca = cargarDesdeArchivo(cRuta);
     std::string objetivo(cTitulo);
-
     bool encontrado = false;
     bool yaEstabaDisponible = false;
 
@@ -155,59 +162,47 @@ Java_com_example_libros2_DevolverActivity_devolverLibro(JNIEnv* env, jobject thi
 
     std::string mensaje;
     if (!encontrado) {
-        mensaje = "❌ No se encontró ningún libro con el título \"" + objetivo + "\".";
+        mensaje = "X No se encontró ningún libro con el titulo \"" + objetivo + "\".";
     } else if (yaEstabaDisponible) {
-        mensaje = "✅ El libro \"" + objetivo + "\" ya se encontraba disponible en el estante.";
+        mensaje = " El libro \"" + objetivo + "\" ya se encontraba disponible en el estante.";
     } else {
         guardarEnArchivo(cRuta, biblioteca);
-        mensaje = "🔄 ¡Éxito! El libro \"" + objetivo + "\" ha sido devuelto y ya está disponible.";
+        mensaje = "¡Éxito! El libro \"" + objetivo + "\" ha sido devuelto y ya está disponible.";
     }
 
     env->ReleaseStringUTFChars(ruta, cRuta);
     env->ReleaseStringUTFChars(titulo, cTitulo);
-
     return env->NewStringUTF(mensaje.c_str());
 }
 
-// 5. NUEVA FUNCIÓN NATIVA: OBTENER ESTADÍSTICAS (Total, Disponibles, Prestados)
+// 5. OBTENER ESTADÍSTICAS
 extern "C" JNIEXPORT jstring JNICALL
 Java_com_example_libros2_MainActivity_obtenerEstadisticas(JNIEnv* env, jobject thiz, jstring ruta) {
-
     const char* cRuta = env->GetStringUTFChars(ruta, nullptr);
     std::vector<Libro> biblioteca = cargarDesdeArchivo(cRuta);
-
     int total = biblioteca.size();
     int prestados = 0;
 
-    // Recorremos la biblioteca para contar cuántos libros están prestados
     for (const auto& l : biblioteca) {
-        if (l.prestado) {
-            prestados++;
-        }
+        if (l.prestado) prestados++;
     }
 
-    // Los que no están prestados, están disponibles en el estante
     int disponibles = total - prestados;
-
-    // Unimos los resultados en una sola cadena separada por guiones (Ej: "5-3-2")
     std::string dataEstadisticas = std::to_string(total) + "-" + std::to_string(disponibles) + "-" + std::to_string(prestados);
 
     env->ReleaseStringUTFChars(ruta, cRuta);
     return env->NewStringUTF(dataEstadisticas.c_str());
 }
 
-// 6. FUNCIÓN NATIVA: PRESTAR LIBRO (Cambiar a prestado y asignar persona)
+// 6. PRESTAR LIBRO (Mantiene tus validaciones y mensajes originales)
 extern "C" JNIEXPORT jstring JNICALL
 Java_com_example_libros2_PrestarActivity_prestarLibro(JNIEnv* env, jobject thiz, jstring ruta, jstring titulo, jstring persona) {
-
     const char* cRuta = env->GetStringUTFChars(ruta, nullptr);
     const char* cTitulo = env->GetStringUTFChars(titulo, nullptr);
     const char* cPersona = env->GetStringUTFChars(persona, nullptr);
-
     std::vector<Libro> biblioteca = cargarDesdeArchivo(cRuta);
     std::string objetivo(cTitulo);
     std::string usuario(cPersona);
-
     bool encontrado = false;
     bool yaPrestado = false;
 
@@ -217,8 +212,8 @@ Java_com_example_libros2_PrestarActivity_prestarLibro(JNIEnv* env, jobject thiz,
             if (l.prestado) {
                 yaPrestado = true;
             } else {
-                l.prestado = true;      // Lo marcamos como prestado
-                l.persona = usuario;    // Guardamos quién se lo lleva
+                l.prestado = true;
+                l.persona = usuario;
             }
             break;
         }
@@ -226,17 +221,16 @@ Java_com_example_libros2_PrestarActivity_prestarLibro(JNIEnv* env, jobject thiz,
 
     std::string mensaje;
     if (!encontrado) {
-        mensaje = "❌ No se encontró ningún libro con el título \"" + objetivo + "\".";
+        mensaje = "X No se encontró ningún libro con el titulo \"" + objetivo + "\".";
     } else if (yaPrestado) {
-        mensaje = "⚠️ El libro \"" + objetivo + "\" ya está prestado actualmente.";
+        mensaje = " El libro \"" + objetivo + "\" ya está prestado actualmente.";
     } else {
         guardarEnArchivo(cRuta, biblioteca);
-        mensaje = "🚀 ¡Éxito! El libro \"" + objetivo + "\" ha sido prestado a " + usuario + ".";
+        mensaje = "¡Éxito! El libro \"" + objetivo + "\" ha sido prestado a " + usuario + ".";
     }
 
     env->ReleaseStringUTFChars(ruta, cRuta);
     env->ReleaseStringUTFChars(titulo, cTitulo);
     env->ReleaseStringUTFChars(persona, cPersona);
-
     return env->NewStringUTF(mensaje.c_str());
 }

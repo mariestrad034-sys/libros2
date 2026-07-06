@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/colorFondo">
@@ -14,7 +15,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="📝 Registrar Libro"
+            android:text="➕ Registrar Libro"
             android:textSize="26sp"
             android:textStyle="bold"
             android:textColor="@color/colorTextoPrincipal"
@@ -31,7 +32,7 @@
             android:backgroundTint="#FFFFFF"
             android:paddingLeft="15dp"
             android:inputType="text"
-            android:layout_marginBottom="15dp"/>
+            android:layout_marginBottom="15dp" />
 
         <EditText
             android:id="@+id/etAutor"
@@ -44,7 +45,7 @@
             android:backgroundTint="#FFFFFF"
             android:paddingLeft="15dp"
             android:inputType="text"
-            android:layout_marginBottom="20dp"/>
+            android:layout_marginBottom="20dp" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -96,7 +97,7 @@
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="#CCCCCC"
+            android:background="#cccccc"
             android:layout_marginBottom="20dp"/>
 
         <CheckBox
@@ -121,7 +122,24 @@
             android:paddingLeft="15dp"
             android:inputType="text"
             android:visibility="gone"
-            android:layout_marginBottom="30dp"/>
+            android:layout_marginBottom="20dp"/>
+
+        <!-- SECCIÓN NUEVA: Área de Imagen -->
+        <ImageView
+            android:id="@+id/ivPortadaPreview"
+            android:layout_width="120dp"
+            android:layout_height="160dp"
+            android:layout_marginBottom="10dp"
+            android:background="#E0E0E0"
+            android:scaleType="centerCrop" />
+
+        <Button
+            android:id="@+id/btnSeleccionarImagen"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Seleccionar Portada"
+            android:layout_marginBottom="20dp" />
+        <!-- FIN SECCIÓN NUEVA -->
 
         <Button
             android:id="@+id/btnGuardar"

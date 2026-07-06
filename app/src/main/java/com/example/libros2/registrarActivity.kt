@@ -1,19 +1,32 @@
 package com.example.libros2
 
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.example.libros2.databinding.ActivityRegistrarBinding
 import java.io.File
+import java.io.FileOutputStream
 
-class RegistrarActivity : AppCompatActivity() {
-
+class RegistrarActivity: AppCompatActivity() {
     private lateinit var binding: ActivityRegistrarBinding
     private lateinit var rutaAlmacenamiento: String
 
-    // Modificamos la función nativa para que también reciba la cadena de géneros
-    external fun registrarLibro(ruta: String, titulo: String, autor: String, persona: String, prestado: Boolean, generos: String): String
+    // Variable para almacenar la ruta de la foto internamente
+    private var rutaImagenSeleccionada: String = "sin_imagen"
+
+    // Modificamos la función nativa para que también reciba la imagen
+    external fun registrarLibro(ruta: String, titulo: String, autor: String, persona: String, prestado: Boolean, generos: String, imagen: String): String
+
+    // Lanzador para abrir la galería
+    private val abrirGaleria = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        if (uri != null) {
+            binding.ivPortadaPreview.setImageURI(uri) // Muestra la foto en pantalla
+            rutaImagenSeleccionada = guardarImagenInternamente(uri) // Guarda la foto en la app
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,13 +36,16 @@ class RegistrarActivity : AppCompatActivity() {
         System.loadLibrary("libros2")
         rutaAlmacenamiento = File(filesDir, "biblioteca.txt").absolutePath
 
+        // Acción del nuevo botón de imagen
+        binding.btnSeleccionarImagen.setOnClickListener {
+            abrirGaleria.launch("image/*")
+        }
+
         // Detectar en tiempo real si marcan o desmarcan "Prestado"
         binding.cbPrestado.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
-                // Si está marcado, aparece el campo con visibilidad VISIBLE
                 binding.etPersona.visibility = View.VISIBLE
             } else {
-                // Si se desmarca, se esconde (GONE) y se limpia el texto automáticamente
                 binding.etPersona.visibility = View.GONE
                 binding.etPersona.text.clear()
             }
@@ -47,13 +63,13 @@ class RegistrarActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            // 2. Validar que si está prestado, ponga el nombre obligatoriamente
+            // 2. Validar que si está prestado, ponga el nombre
             if (prestado && persona.isEmpty()) {
-                Toast.makeText(this, "❌ Debes colocar el nombre de la persona a quien se lo prestaste", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "Debes colocar el nombre de la persona a quien se lo prestaste", Toast.LENGTH_LONG).show()
                 return@setOnClickListener
             }
 
-            // 3. Juntar los géneros seleccionados en un solo texto
+            // 3. Juntar los géneros seleccionados
             val listaGeneros = mutableListOf<String>()
             if (binding.cbRomance.isChecked) listaGeneros.add("Romance")
             if (binding.cbAccion.isChecked) listaGeneros.add("Acción")
@@ -65,16 +81,14 @@ class RegistrarActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            // Convertimos la lista de géneros a un solo String separado por comas
-            val generosTexto = listaGeneros.joinToString(", ")
+            val generosTexto = listaGeneros.joinToString(",")
 
-            // Mandamos todo a C++
-            val resultado = registrarLibro(rutaAlmacenamiento, titulo, autor, persona, prestado, generosTexto)
+            // Mandamos todo a C++, incluyendo la ruta de la imagen
+            val resultado = registrarLibro(rutaAlmacenamiento, titulo, autor, persona, prestado, generosTexto, rutaImagenSeleccionada)
 
-            // Mostramos el resultado de C++ en un mensaje flotante (Toast)
             Toast.makeText(this, resultado, Toast.LENGTH_LONG).show()
 
-            // ✅ CORREGIDO: Se eliminó la línea "Kleid()" que causaba el error
+            // Limpieza del formulario
             binding.etTitulo.text.clear()
             binding.etAutor.text.clear()
             binding.etPersona.text.clear()
@@ -83,9 +97,30 @@ class RegistrarActivity : AppCompatActivity() {
             binding.cbAccion.isChecked = false
             binding.cbDrama.isChecked = false
             binding.cbComedia.isChecked = false
-
-            // Aseguramos que el campo se esconda de nuevo al reiniciar el formulario
             binding.etPersona.visibility = View.GONE
+
+            // Limpiamos la imagen para el siguiente registro
+            binding.ivPortadaPreview.setImageDrawable(null)
+            rutaImagenSeleccionada = "sin_imagen"
+        }
+    }
+
+    // Función para copiar la foto de la galería a los archivos privados de la app
+    private fun guardarImagenInternamente(uri: Uri): String {
+        return try {
+            val inputStream = contentResolver.openInputStream(uri)
+            val nombreArchivo = "portada_${System.currentTimeMillis()}.jpg"
+            val archivoDestino = File(filesDir, nombreArchivo)
+            val outputStream = FileOutputStream(archivoDestino)
+
+            inputStream?.copyTo(outputStream)
+            inputStream?.close()
+            outputStream.close()
+
+            archivoDestino.absolutePath
+        } catch (e: Exception) {
+            e.printStackTrace()
+            "sin_imagen"
         }
     }
 }
