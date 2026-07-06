@@ -1,5 +1,6 @@
 package com.example.libros2
 
+import android.app.DatePickerDialog
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
@@ -9,22 +10,29 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.libros2.databinding.ActivityRegistrarBinding
 import java.io.File
 import java.io.FileOutputStream
+import java.util.Calendar
 
-class RegistrarActivity: AppCompatActivity() {
+class RegistrarActivity : AppCompatActivity() {
     private lateinit var binding: ActivityRegistrarBinding
     private lateinit var rutaAlmacenamiento: String
-
-    // Variable para almacenar la ruta de la foto internamente
     private var rutaImagenSeleccionada: String = "sin_imagen"
 
-    // Modificamos la función nativa para que también reciba la imagen
-    external fun registrarLibro(ruta: String, titulo: String, autor: String, persona: String, prestado: Boolean, generos: String, imagen: String): String
+    // Firma nativa actualizada para incluir el parámetro de la fecha de vencimiento
+    external fun registrarLibro(
+        ruta: String,
+        titulo: String,
+        autor: String,
+        persona: String,
+        prestado: Boolean,
+        generos: String,
+        imagen: String,
+        fechaDevolucion: String
+    ): String
 
-    // Lanzador para abrir la galería
     private val abrirGaleria = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         if (uri != null) {
-            binding.ivPortadaPreview.setImageURI(uri) // Muestra la foto en pantalla
-            rutaImagenSeleccionada = guardarImagenInternamente(uri) // Guarda la foto en la app
+            binding.ivPortadaPreview.setImageURI(uri)
+            rutaImagenSeleccionada = guardarImagenInternamente(uri)
         }
     }
 
@@ -36,18 +44,36 @@ class RegistrarActivity: AppCompatActivity() {
         System.loadLibrary("libros2")
         rutaAlmacenamiento = File(filesDir, "biblioteca.txt").absolutePath
 
-        // Acción del nuevo botón de imagen
         binding.btnSeleccionarImagen.setOnClickListener {
             abrirGaleria.launch("image/*")
         }
 
-        // Detectar en tiempo real si marcan o desmarcan "Prestado"
+        // CONTROLADOR DE CALENDARIO: Despliega el DatePicker nativo tipo HTML
+        binding.etFechaDevolucion.setOnClickListener {
+            val calendarioActual = Calendar.getInstance()
+            val anio = calendarioActual.get(Calendar.YEAR)
+            val mes = calendarioActual.get(Calendar.MONTH)
+            val dia = calendarioActual.get(Calendar.DAY_OF_MONTH)
+
+            val selectorFecha = DatePickerDialog(this, { _, anioSel, mesSel, diaSel ->
+                val fechaFormateada = String.format("%02d/%02d/%d", diaSel, mesSel + 1, anioSel)
+                binding.etFechaDevolucion.setText(fechaFormateada)
+            }, anio, mes, dia)
+
+            selectorFecha.datePicker.minDate = System.currentTimeMillis() // Evita fechas pasadas
+            selectorFecha.show()
+        }
+
+        // Mostrar u ocultar campos extras si está prestado
         binding.cbPrestado.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
                 binding.etPersona.visibility = View.VISIBLE
+                binding.etFechaDevolucion.visibility = View.VISIBLE
             } else {
                 binding.etPersona.visibility = View.GONE
+                binding.etFechaDevolucion.visibility = View.GONE
                 binding.etPersona.text.clear()
+                binding.etFechaDevolucion.text.clear()
             }
         }
 
@@ -56,20 +82,18 @@ class RegistrarActivity: AppCompatActivity() {
             val autor = binding.etAutor.text.toString().trim()
             val persona = binding.etPersona.text.toString().trim()
             val prestado = binding.cbPrestado.isChecked
+            val fechaDevolucion = binding.etFechaDevolucion.text.toString().trim()
 
-            // 1. Validación básica de Título y Autor
             if (titulo.isEmpty() || autor.isEmpty()) {
                 Toast.makeText(this, "Por favor llena Título y Autor", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            // 2. Validar que si está prestado, ponga el nombre
-            if (prestado && persona.isEmpty()) {
-                Toast.makeText(this, "Debes colocar el nombre de la persona a quien se lo prestaste", Toast.LENGTH_LONG).show()
+            if (prestado && (persona.isEmpty() || fechaDevolucion.isEmpty())) {
+                Toast.makeText(this, "Debes ingresar la persona y la fecha de devolución", Toast.LENGTH_LONG).show()
                 return@setOnClickListener
             }
 
-            // 3. Juntar los géneros seleccionados
             val listaGeneros = mutableListOf<String>()
             if (binding.cbRomance.isChecked) listaGeneros.add("Romance")
             if (binding.cbAccion.isChecked) listaGeneros.add("Acción")
@@ -83,40 +107,39 @@ class RegistrarActivity: AppCompatActivity() {
 
             val generosTexto = listaGeneros.joinToString(",")
 
-            // Mandamos todo a C++, incluyendo la ruta de la imagen
-            val resultado = registrarLibro(rutaAlmacenamiento, titulo, autor, persona, prestado, generosTexto, rutaImagenSeleccionada)
-
+            // Enviamos todos los parámetros procesados a C++
+            val resultado = registrarLibro(
+                rutaAlmacenamiento, titulo, autor, persona, prestado,
+                generosTexto, rutaImagenSeleccionada, fechaDevolucion
+            )
             Toast.makeText(this, resultado, Toast.LENGTH_LONG).show()
 
-            // Limpieza del formulario
+            // Limpieza completa del formulario para el próximo registro
             binding.etTitulo.text.clear()
             binding.etAutor.text.clear()
             binding.etPersona.text.clear()
+            binding.etFechaDevolucion.text.clear()
             binding.cbPrestado.isChecked = false
             binding.cbRomance.isChecked = false
             binding.cbAccion.isChecked = false
             binding.cbDrama.isChecked = false
             binding.cbComedia.isChecked = false
             binding.etPersona.visibility = View.GONE
-
-            // Limpiamos la imagen para el siguiente registro
+            binding.etFechaDevolucion.visibility = View.GONE
             binding.ivPortadaPreview.setImageDrawable(null)
             rutaImagenSeleccionada = "sin_imagen"
         }
     }
 
-    // Función para copiar la foto de la galería a los archivos privados de la app
     private fun guardarImagenInternamente(uri: Uri): String {
         return try {
             val inputStream = contentResolver.openInputStream(uri)
             val nombreArchivo = "portada_${System.currentTimeMillis()}.jpg"
             val archivoDestino = File(filesDir, nombreArchivo)
             val outputStream = FileOutputStream(archivoDestino)
-
             inputStream?.copyTo(outputStream)
             inputStream?.close()
             outputStream.close()
-
             archivoDestino.absolutePath
         } catch (e: Exception) {
             e.printStackTrace()

@@ -11,7 +11,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="🚀 Prestar un Libro"
+        android:text="🤝 Prestar un Libro"
         android:textSize="24sp"
         android:textStyle="bold"
         android:textColor="@color/colorTextoPrincipal"
@@ -45,13 +45,28 @@
         android:id="@+id/etPrestarPersona"
         android:layout_width="match_parent"
         android:layout_height="55dp"
-        android:hint="Nombre del alumno/usuario"
+        android:hint="👤 Nombre del alumno/usuario"
         android:background="@android:drawable/editbox_background"
         android:backgroundTint="@color/colorTarjeta"
         android:textColor="@color/colorTextoPrincipal"
         android:textColorHint="@color/colorTextoSecundario"
         android:paddingLeft="15dp"
         android:inputType="text"
+        android:layout_marginBottom="15dp"/>
+
+    <!-- NUEVO: Campo interactivo para la fecha de devolución -->
+    <EditText
+        android:id="@+id/etPrestarFechaDevolucion"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:hint="📅 Fecha de devolución (Obligatorio)"
+        android:background="@android:drawable/editbox_background"
+        android:backgroundTint="@color/colorTarjeta"
+        android:textColor="@color/colorTextoPrincipal"
+        android:textColorHint="@color/colorTextoSecundario"
+        android:paddingLeft="15dp"
+        android:focusable="false"
+        android:clickable="true"
         android:layout_marginBottom="25dp"/>
 
     <Button

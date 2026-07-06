@@ -2,6 +2,7 @@ package com.example.libros2
 
 import android.content.Intent
 import android.graphics.Color
+import android.graphics.Typeface
 import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
@@ -11,13 +12,16 @@ import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
-import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.example.libros2.databinding.ActivityVerBinding
+import android.widget.ImageView
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class VerActivity: AppCompatActivity() {
     private lateinit var binding: ActivityVerBinding
@@ -92,26 +96,26 @@ class VerActivity: AppCompatActivity() {
                 val estado = datos[3]
                 val rutaImg = datos[4].trim()
 
+                // Extraemos la fecha de devolución si existe (sexto parámetro)
+                val fechaDevolucion = if (datos.size >= 6) datos[5].trim() else ""
+
                 if (query.isNotEmpty() && !titulo.contains(query, ignoreCase = true)) {
                     continue
                 }
 
                 librosMostradosContador++
 
-                // 1. Fila horizontal contenedor de la tarjeta
                 val filaLibro = LinearLayout(this).apply {
                     orientation = LinearLayout.HORIZONTAL
                     setPadding(0, margen, 0, margen)
-                    gravity = Gravity.CENTER_VERTICAL // Alinea verticalmente los componentes
+                    gravity = Gravity.CENTER_VERTICAL
                 }
 
-                // 2. Imagen de portada
                 val ivPortada = ImageView(this).apply {
                     layoutParams = LinearLayout.LayoutParams(anchoImagen, altoImagen).apply {
                         setMargins(0, 0, margen, 0)
                     }
                     scaleType = ImageView.ScaleType.CENTER_CROP
-
                     if (rutaImg != "sin_imagen" && File(rutaImg).exists()) {
                         setImageURI(Uri.fromFile(File(rutaImg)))
                     } else {
@@ -119,33 +123,63 @@ class VerActivity: AppCompatActivity() {
                     }
                 }
 
-                // 3. MEJORA: Bloque de textos con peso (weight = 1f) para empujar el botón a la derecha
                 val bloqueTexto = LinearLayout(this).apply {
                     orientation = LinearLayout.VERTICAL
-                    layoutParams = LinearLayout.LayoutParams(
-                        0, // Ancho cero para que el peso tome el control
-                        LinearLayout.LayoutParams.WRAP_CONTENT,
-                        1f // Ocupa todo el espacio disponible del centro
-                    )
+                    layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
                 }
 
+                // Datos básicos del libro (Título, Autor, Género)
                 val tvInfo = TextView(this).apply {
-                    text = "📌 Título: $titulo\n✍️ Autor: $autor\n🎭 Géneros: $generos\n💡 Estado: $estado"
+                    text = "📌 Título: $titulo\n✍️ Autor: $autor\n🎭 Géneros: $generos"
                     textSize = 14f
                     setTextColor(ContextCompat.getColor(this@VerActivity, R.color.colorTextoPrincipal))
                     setLineSpacing(4f, 1f)
                 }
                 bloqueTexto.addView(tvInfo)
 
-                // 4. NUEVO COMPONENTE: Botón dinámico para hacer publicidad y rentar
+                // --- LÓGICA INTELIGENTE DE FECHAS Y COLORES ---
+                var estadoTexto = "💡 Estado: $estado"
+                var colorEstado = ContextCompat.getColor(this@VerActivity, R.color.colorTextoSecundario)
+                var esVencido = false
+
+                if (estado.contains("Prestado", ignoreCase = true) && fechaDevolucion.isNotEmpty()) {
+                    try {
+                        val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                        val fechaLimite = sdf.parse(fechaDevolucion)
+                        val fechaHoy = Date() // Captura la fecha real del teléfono
+
+                        if (fechaHoy.after(fechaLimite)) {
+                            estadoTexto = "⚠️ VENCIDO (Debió devolverse: $fechaDevolucion)\n👤 $estado"
+                            colorEstado = Color.parseColor("#FF1744") // Rojo brillante de alerta
+                            esVencido = true
+                        } else {
+                            estadoTexto = "📅 Devolver el: $fechaDevolucion\n👤 $estado"
+                            colorEstado = Color.parseColor("#FF9100") // Naranja estético de préstamo activo
+                        }
+                    } catch (e: Exception) {
+                        estadoTexto = "💡 Estado: $estado\n📅 Vence: $fechaDevolucion"
+                    }
+                } else if (estado.contains("Disponible", ignoreCase = true)) {
+                    colorEstado = Color.parseColor("#00E676") // Verde brillante para disponible
+                }
+
+                // Creamos un TextView exclusivo para el estado para que resalte mucho más
+                val tvEstado = TextView(this).apply {
+                    text = estadoTexto
+                    textSize = 13f
+                    setTextColor(colorEstado)
+                    setTypeface(null, Typeface.BOLD)
+                    setPadding(0, 4, 0, 0)
+                }
+                bloqueTexto.addView(tvEstado)
+                // ----------------------------------------------
+
                 val btnCompartir = Button(this).apply {
                     text = "Rentar\n📢"
                     textSize = 12f
-                            setTextColor(Color.WHITE)
-                    // Un color naranja/celeste corporativo que resalta genial tanto en modo claro como oscuro
+                    setTextColor(Color.WHITE)
                     setBackgroundColor(Color.parseColor("#009688"))
                     setPadding(10, 5, 10, 5)
-
                     layoutParams = LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.WRAP_CONTENT,
                         LinearLayout.LayoutParams.WRAP_CONTENT
@@ -153,33 +187,27 @@ class VerActivity: AppCompatActivity() {
                         setMargins(margen, 0, 0, 0)
                     }
 
-                    // Lógica de Envío de Publicidad
                     setOnClickListener {
-                        // Construimos un mensaje llamativo con formato negrita para WhatsApp (*texto*)
                         val mensajePublicidad = "¡Hola! Te recomiendo este increíble libro de mi colección física disponible para renta: \n\n" +
                                 "📚 *Título:* $titulo\n" +
                                 "✍️ *Autor:* $autor\n" +
                                 "🎭 *Géneros:* $generos\n" +
-                                "✨ *Disponibilidad actual:* $estado\n\n" +
-                                "¡Escríbeme al privado si te interesa leerlo para coordinar el alquiler! 📖 Separa el tuyo antes de que se lo lleven."
+                                "✨ *Disponibilidad:* $estado\n\n" +
+                                "¡Escríbeme al privado si te interesa leerlo para coordinar el alquiler! 📖"
 
                         val intentCompartir = Intent(Intent.ACTION_SEND).apply {
                             type = "text/plain"
                             putExtra(Intent.EXTRA_TEXT, mensajePublicidad)
                         }
-
-                        // Abre el menú nativo para elegir WhatsApp, Telegram, Mensajes, etc.
                         context.startActivity(Intent.createChooser(intentCompartir, "Promocionar libro en:"))
                     }
                 }
 
-                // 5. Juntamos todo en la fila ordenadamente
                 filaLibro.addView(ivPortada)
                 filaLibro.addView(bloqueTexto)
-                filaLibro.addView(btnCompartir) // El botón aparece limpio al extremo derecho
+                filaLibro.addView(btnCompartir)
                 binding.containerLibros.addView(filaLibro)
 
-                // Línea divisoria sutil
                 val lineaDivisoria = View(this).apply {
                     layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 2)
                     setBackgroundColor(Color.parseColor("#2C2C2C"))
