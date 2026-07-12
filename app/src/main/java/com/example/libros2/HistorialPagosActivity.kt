@@ -66,10 +66,10 @@ class HistorialPagosActivity : AppCompatActivity() {
 
             val datos = prestamoRaw.split("|")
             if (datos.size >= 4) {
-                val nombre = datos[0]  // Nombre de la persona
-                val titulo = datos[1]  // Título del libro
-                val monto = datos[2]   // Monto
-                val estado = datos[3]  // Estado (pagado o no)
+                val nombre = datos[0]
+                val titulo = datos[1]
+                val monto = datos[2]
+                val estado = datos[3]
 
                 // Crear contenedor para cada préstamo
                 val filaPago = LinearLayout(this).apply {
@@ -81,7 +81,7 @@ class HistorialPagosActivity : AppCompatActivity() {
                         setMargins(0, margen, 0, margen)
                     }
                     setPadding(15, 15, 15, 15)
-                    setBackgroundColor(Color.parseColor("#2C2C2C"))
+                    setBackgroundColor(ContextCompat.getColor(this@HistorialPagosActivity, R.color.colorTarjeta))  // 👈 CORREGIDO
                 }
 
                 // Información del préstamo
@@ -114,7 +114,6 @@ class HistorialPagosActivity : AppCompatActivity() {
 
                     setOnCheckedChangeListener { _, isChecked ->
                         if (isChecked) {
-                            // Marcar como pagado en C++
                             val resultado = marcarPagado(rutaAlmacenamiento, titulo, nombre)
                             Toast.makeText(
                                 this@HistorialPagosActivity,
@@ -122,10 +121,8 @@ class HistorialPagosActivity : AppCompatActivity() {
                                 Toast.LENGTH_SHORT
                             ).show()
 
-                            // Cambiar color a verde
                             setTextColor(Color.parseColor("#00E676"))
 
-                            // Actualizar la vista
                             cargarPrestamosPendientes()
                         }
                     }
@@ -142,7 +139,7 @@ class HistorialPagosActivity : AppCompatActivity() {
                     ).apply {
                         setMargins(0, margen, 0, 0)
                     }
-                    setBackgroundColor(Color.parseColor("#444444"))
+                    setBackgroundColor(ContextCompat.getColor(this@HistorialPagosActivity, R.color.colorTextoSecundario))  // 👈 TAMBIÉN CORREGIDO
                 }
                 binding.containerPagos.addView(divisoria)
             }
