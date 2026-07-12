@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/colorFondo">
+
+    <!-- Barra superior con título y botón volver -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="15dp"
+        android:gravity="center_vertical">
+
+        <Button
+            android:id="@+id/btnVolver"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="⬅️ Volver"
+            android:backgroundTint="#757575"
+            android:textColor="#FFFFFF"
+            android:layout_marginRight="15dp" />
+
+        <TextView
+            android:id="@+id/tvTituloDetalle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Detalles del Libro"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/colorTextoPrincipal" />
+    </LinearLayout>
+
+    <!-- Línea divisoria -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#cccccc"
+        android:layout_marginBottom="15dp" />
+
+    <!-- Scroll con contenido -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="20dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
+
+            <!-- Imagen de portada grande -->
+            <ImageView
+                android:id="@+id/ivPortadaDetalle"
+                android:layout_width="200dp"
+                android:layout_height="280dp"
+                android:scaleType="centerCrop"
+                android:background="#E0E0E0"
+                android:layout_marginBottom="25dp" />
+
+            <!-- Título del libro -->
+            <TextView
+                android:id="@+id/tvTituloLibro"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Título del Libro"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:textColor="@color/colorTextoPrincipal"
+                android:gravity="center"
+                android:layout_marginBottom="8dp" />
+
+            <!-- Autor del libro -->
+            <TextView
+                android:id="@+id/tvAutorLibro"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Autor"
+                android:textSize="16sp"
+                android:textColor="@color/colorTextoSecundario"
+                android:gravity="center"
+                android:layout_marginBottom="20dp" />
+
+            <!-- Separador -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#cccccc"
+                android:layout_marginBottom="20dp" />
+
+            <!-- Etiqueta de sinopsis -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="📖 Sinopsis"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/colorTextoPrincipal"
+                android:layout_marginBottom="12dp" />
+
+            <!-- Contenido de la sinopsis -->
+            <TextView
+                android:id="@+id/tvSinopsisDetalle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="No hay sinopsis disponible."
+                android:textSize="15sp"
+                android:textColor="@color/colorTextoPrincipal"
+                android:lineSpacingMultiplier="1.5"
+                android:layout_marginBottom="30dp" />
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</LinearLayout>

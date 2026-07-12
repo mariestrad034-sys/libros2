@@ -13,11 +13,12 @@ import java.io.FileOutputStream
 import java.util.Calendar
 
 class RegistrarActivity : AppCompatActivity() {
+
     private lateinit var binding: ActivityRegistrarBinding
     private lateinit var rutaAlmacenamiento: String
     private var rutaImagenSeleccionada: String = "sin_imagen"
 
-    // Firma nativa actualizada para incluir el parámetro de la fecha de vencimiento
+    // Firma nativa actualizada para incluir la sinopsis y el monto
     external fun registrarLibro(
         ruta: String,
         titulo: String,
@@ -26,15 +27,18 @@ class RegistrarActivity : AppCompatActivity() {
         prestado: Boolean,
         generos: String,
         imagen: String,
-        fechaDevolucion: String
+        fechaDevolucion: String,
+        sinopsis: String,
+        monto: String
     ): String
 
-    private val abrirGaleria = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-        if (uri != null) {
-            binding.ivPortadaPreview.setImageURI(uri)
-            rutaImagenSeleccionada = guardarImagenInternamente(uri)
+    private val abrirGaleria =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+            if (uri != null) {
+                binding.ivPortadaPreview.setImageURI(uri)
+                rutaImagenSeleccionada = guardarImagenInternamente(uri)
+            }
         }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,6 +46,7 @@ class RegistrarActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         System.loadLibrary("libros2")
+
         rutaAlmacenamiento = File(filesDir, "biblioteca.txt").absolutePath
 
         binding.btnSeleccionarImagen.setOnClickListener {
@@ -69,11 +74,14 @@ class RegistrarActivity : AppCompatActivity() {
             if (isChecked) {
                 binding.etPersona.visibility = View.VISIBLE
                 binding.etFechaDevolucion.visibility = View.VISIBLE
+                binding.etMontoPrestamo.visibility = View.VISIBLE
             } else {
                 binding.etPersona.visibility = View.GONE
                 binding.etFechaDevolucion.visibility = View.GONE
+                binding.etMontoPrestamo.visibility = View.GONE
                 binding.etPersona.text.clear()
                 binding.etFechaDevolucion.text.clear()
+                binding.etMontoPrestamo.text.clear()
             }
         }
 
@@ -83,6 +91,8 @@ class RegistrarActivity : AppCompatActivity() {
             val persona = binding.etPersona.text.toString().trim()
             val prestado = binding.cbPrestado.isChecked
             val fechaDevolucion = binding.etFechaDevolucion.text.toString().trim()
+            val sinopsis = binding.etSinopsis.text.toString().trim()
+            val monto = binding.etMontoPrestamo.text.toString().trim()
 
             if (titulo.isEmpty() || autor.isEmpty()) {
                 Toast.makeText(this, "Por favor llena Título y Autor", Toast.LENGTH_SHORT).show()
@@ -90,7 +100,11 @@ class RegistrarActivity : AppCompatActivity() {
             }
 
             if (prestado && (persona.isEmpty() || fechaDevolucion.isEmpty())) {
-                Toast.makeText(this, "Debes ingresar la persona y la fecha de devolución", Toast.LENGTH_LONG).show()
+                Toast.makeText(
+                    this,
+                    "Debes ingresar la persona y la fecha de devolución",
+                    Toast.LENGTH_LONG
+                ).show()
                 return@setOnClickListener
             }
 
@@ -109,9 +123,18 @@ class RegistrarActivity : AppCompatActivity() {
 
             // Enviamos todos los parámetros procesados a C++
             val resultado = registrarLibro(
-                rutaAlmacenamiento, titulo, autor, persona, prestado,
-                generosTexto, rutaImagenSeleccionada, fechaDevolucion
+                rutaAlmacenamiento,
+                titulo,
+                autor,
+                persona,
+                prestado,
+                generosTexto,
+                rutaImagenSeleccionada,
+                fechaDevolucion,
+                sinopsis,
+                monto
             )
+
             Toast.makeText(this, resultado, Toast.LENGTH_LONG).show()
 
             // Limpieza completa del formulario para el próximo registro
@@ -119,6 +142,8 @@ class RegistrarActivity : AppCompatActivity() {
             binding.etAutor.text.clear()
             binding.etPersona.text.clear()
             binding.etFechaDevolucion.text.clear()
+            binding.etSinopsis.text.clear()
+            binding.etMontoPrestamo.text.clear()
             binding.cbPrestado.isChecked = false
             binding.cbRomance.isChecked = false
             binding.cbAccion.isChecked = false
@@ -126,6 +151,7 @@ class RegistrarActivity : AppCompatActivity() {
             binding.cbComedia.isChecked = false
             binding.etPersona.visibility = View.GONE
             binding.etFechaDevolucion.visibility = View.GONE
+            binding.etMontoPrestamo.visibility = View.GONE
             binding.ivPortadaPreview.setImageDrawable(null)
             rutaImagenSeleccionada = "sin_imagen"
         }

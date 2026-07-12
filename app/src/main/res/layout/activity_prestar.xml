@@ -69,6 +69,20 @@
         android:clickable="true"
         android:layout_marginBottom="25dp"/>
 
+    <!-- NUEVO: Campo de monto para el préstamo -->
+    <EditText
+        android:id="@+id/etMontoPrestar"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:hint="💵 Monto del préstamo (Opcional)"
+        android:textColorHint="@color/colorTextoSecundario"
+        android:textColor="@color/colorTextoPrincipal"
+        android:background="@android:drawable/editbox_background"
+        android:backgroundTint="@color/colorTarjeta"
+        android:paddingLeft="15dp"
+        android:inputType="numberDecimal"
+        android:layout_marginBottom="25dp" />
+
     <Button
         android:id="@+id/btnConfirmarPrestar"
         android:layout_width="match_parent"

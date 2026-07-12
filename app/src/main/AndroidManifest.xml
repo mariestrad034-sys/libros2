@@ -33,6 +33,14 @@
             android:exported="false" />
 
         <activity
+            android:name=".DetalleLibroActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".HistorialPagosActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>

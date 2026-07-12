@@ -5,12 +5,14 @@
     android:layout_height="match_parent"
     android:background="@color/colorFondo">
 
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="25dp"
         android:gravity="center_horizontal">
+
 
         <TextView
             android:layout_width="wrap_content"
@@ -20,6 +22,7 @@
             android:textStyle="bold"
             android:textColor="@color/colorTextoPrincipal"
             android:layout_marginBottom="25dp" />
+
 
         <EditText
             android:id="@+id/etTitulo"
@@ -34,6 +37,7 @@
             android:inputType="text"
             android:layout_marginBottom="15dp" />
 
+
         <EditText
             android:id="@+id/etAutor"
             android:layout_width="match_parent"
@@ -47,6 +51,21 @@
             android:inputType="text"
             android:layout_marginBottom="20dp" />
 
+        <EditText
+            android:id="@+id/etSinopsis"
+            android:layout_width="match_parent"
+            android:layout_height="140dp"
+            android:hint="Sinopsis del libro (opcional)"
+            android:textColorHint="#757575"
+            android:textColor="#212121"
+            android:background="@android:drawable/editbox_background"
+            android:backgroundTint="#FFFFFF"
+            android:padding="15dp"
+            android:gravity="top|left"
+            android:inputType="textMultiLine"
+            android:maxLines="6"
+            android:layout_marginBottom="20dp" />
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -57,6 +76,7 @@
             android:layout_gravity="left"
             android:layout_marginBottom="15dp"/>
 
+
         <CheckBox
             android:id="@+id/cbRomance"
             android:layout_width="match_parent"
@@ -65,6 +85,7 @@
             android:textSize="16sp"
             android:textColor="@color/colorTextoPrincipal"
             android:buttonTint="@color/colorTextoPrincipal" />
+
 
         <CheckBox
             android:id="@+id/cbAccion"
@@ -75,6 +96,7 @@
             android:textColor="@color/colorTextoPrincipal"
             android:buttonTint="@color/colorTextoPrincipal" />
 
+
         <CheckBox
             android:id="@+id/cbDrama"
             android:layout_width="match_parent"
@@ -83,6 +105,7 @@
             android:textSize="16sp"
             android:textColor="@color/colorTextoPrincipal"
             android:buttonTint="@color/colorTextoPrincipal" />
+
 
         <CheckBox
             android:id="@+id/cbComedia"
@@ -94,11 +117,13 @@
             android:buttonTint="@color/colorTextoPrincipal"
             android:layout_marginBottom="20dp" />
 
+
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:background="#cccccc"
             android:layout_marginBottom="20dp"/>
+
 
         <CheckBox
             android:id="@+id/cbPrestado"
@@ -109,6 +134,7 @@
             android:textColor="@color/colorTextoPrincipal"
             android:buttonTint="@color/colorTextoPrincipal"
             android:layout_marginBottom="15dp"/>
+
 
         <EditText
             android:id="@+id/etPersona"
@@ -123,6 +149,7 @@
             android:inputType="text"
             android:visibility="gone"
             android:layout_marginBottom="15dp"/>
+
 
         <!-- NUEVO: Campo de fecha interactivo con comportamiento HTML -->
         <EditText
@@ -140,6 +167,21 @@
             android:visibility="gone"
             android:layout_marginBottom="20dp"/>
 
+        <!-- NUEVO: Campo de monto para el préstamo -->
+        <EditText
+            android:id="@+id/etMontoPrestamo"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:hint="💵 Monto del préstamo (Opcional)"
+            android:textColorHint="#757575"
+            android:textColor="#212121"
+            android:background="@android:drawable/editbox_background"
+            android:backgroundTint="#FFFFFF"
+            android:paddingLeft="15dp"
+            android:inputType="numberDecimal"
+            android:visibility="gone"
+            android:layout_marginBottom="20dp" />
+
         <ImageView
             android:id="@+id/ivPortadaPreview"
             android:layout_width="120dp"
@@ -148,12 +190,14 @@
             android:background="#E0E0E0"
             android:scaleType="centerCrop" />
 
+
         <Button
             android:id="@+id/btnSeleccionarImagen"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Seleccionar Portada"
             android:layout_marginBottom="20dp"/>
+
 
         <Button
             android:id="@+id/btnGuardar"

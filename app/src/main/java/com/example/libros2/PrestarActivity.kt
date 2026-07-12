@@ -9,16 +9,25 @@ import java.io.File
 import java.util.Calendar
 
 class PrestarActivity : AppCompatActivity() {
+
     private lateinit var binding: ActivityPrestarBinding
     private lateinit var rutaAlmacenamiento: String
 
-    // Firma nativa de C++ actualizada con la fecha de devolución
-    external fun prestarLibro(ruta: String, titulo: String, persona: String, fechaDevolucion: String): String
+    // Firma nativa de C++ actualizada con la fecha de devolución y el monto
+    external fun prestarLibro(
+        ruta: String,
+        titulo: String,
+        persona: String,
+        fechaDevolucion: String,
+        monto: String
+    ): String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityPrestarBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        System.loadLibrary("libros2")
 
         rutaAlmacenamiento = File(filesDir, "biblioteca.txt").absolutePath
 
@@ -44,6 +53,7 @@ class PrestarActivity : AppCompatActivity() {
         binding.btnConfirmarPrestar.setOnClickListener {
             val persona = binding.etPrestarPersona.text.toString().trim()
             val fechaDevolucion = binding.etPrestarFechaDevolucion.text.toString().trim()
+            val monto = binding.etMontoPrestar.text.toString().trim()
 
             // Validación de campos vacíos
             if (persona.isEmpty() || fechaDevolucion.isEmpty()) {
@@ -52,14 +62,14 @@ class PrestarActivity : AppCompatActivity() {
             }
 
             var prestadosCount = 0
+
             // Recorremos el contenedor buscando qué CheckBoxes se marcaron
             for (i in 0 until binding.llLibrosDisponibles.childCount) {
                 val view = binding.llLibrosDisponibles.getChildAt(i)
                 if (view is CheckBox && view.isChecked) {
                     val titulo = view.text.toString()
-
                     // Mandamos los datos limpios a C++
-                    prestarLibro(rutaAlmacenamiento, titulo, persona, fechaDevolucion)
+                    prestarLibro(rutaAlmacenamiento, titulo, persona, fechaDevolucion, monto)
                     prestadosCount++
                 }
             }
@@ -69,6 +79,7 @@ class PrestarActivity : AppCompatActivity() {
                 binding.tvResultadoPrestar.text = "¡$prestadosCount libro(s) prestado(s) exitosamente!"
                 binding.etPrestarPersona.text.clear()
                 binding.etPrestarFechaDevolucion.text.clear()
+                binding.etMontoPrestar.text.clear()
                 cargarLibrosDisponibles() // Recargamos la lista
             } else {
                 binding.tvResultadoPrestar.text = "Selecciona al menos un libro."
@@ -78,15 +89,15 @@ class PrestarActivity : AppCompatActivity() {
 
     private fun cargarLibrosDisponibles() {
         binding.llLibrosDisponibles.removeAllViews() // Limpiamos la vista anterior
+
         val file = File(rutaAlmacenamiento)
         if (file.exists()) {
             file.forEachLine { linea ->
                 val partes = linea.split("|")
-                // Aseguramos formato correcto (ahora son 7 partes)
+                // Aseguramos formato correcto (ahora son 8 partes: titulo, autor, persona, prestado, generos, imagen, fecha, sinopsis, monto)
                 if (partes.size >= 7) {
                     val titulo = partes[0]
                     val prestado = partes[3]
-
                     if (prestado == "0") { // "0" significa disponible
                         val checkBox = CheckBox(this)
                         checkBox.text = titulo

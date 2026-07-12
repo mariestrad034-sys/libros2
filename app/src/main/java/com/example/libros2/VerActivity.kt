@@ -89,15 +89,19 @@ class VerActivity: AppCompatActivity() {
             if (libroRaw.trim().isEmpty()) continue
 
             val datos = libroRaw.split("|")
-            if (datos.size >= 5) {
+            // 👉 CAMBIO: Ahora verificamos que haya al menos 7 campos (agregamos sinopsis)
+            if (datos.size >= 7) {
                 val titulo = datos[0]
                 val autor = datos[1]
                 val generos = datos[2]
                 val estado = datos[3]
                 val rutaImg = datos[4].trim()
 
-                // Extraemos la fecha de devolución si existe (sexto parámetro)
+                // Extraemos la fecha de devolución (sexto parámetro)
                 val fechaDevolucion = if (datos.size >= 6) datos[5].trim() else ""
+
+                // 👉 NUEVO: Extraemos la sinopsis (séptimo parámetro)
+                val sinopsis = if (datos.size >= 7) datos[6].trim() else ""
 
                 if (query.isNotEmpty() && !titulo.contains(query, ignoreCase = true)) {
                     continue
@@ -120,6 +124,17 @@ class VerActivity: AppCompatActivity() {
                         setImageURI(Uri.fromFile(File(rutaImg)))
                     } else {
                         setBackgroundColor(Color.parseColor("#424242"))
+                    }
+
+                    // 👉 NUEVO: Listener para abrir la ventana de detalles al tocar la imagen
+                    setOnClickListener {
+                        val intent = Intent(this@VerActivity, DetalleLibroActivity::class.java).apply {
+                            putExtra("titulo", titulo)
+                            putExtra("autor", autor)
+                            putExtra("sinopsis", sinopsis)
+                            putExtra("rutaImagen", rutaImg)
+                        }
+                        startActivity(intent)
                     }
                 }
 
@@ -188,12 +203,22 @@ class VerActivity: AppCompatActivity() {
                     }
 
                     setOnClickListener {
-                        val mensajePublicidad = "¡Hola! Te recomiendo este increíble libro de mi colección física disponible para renta: \n\n" +
+                        // Desescapar la sinopsis para mostrarla correctamente
+                        val sinopsisFormateada = sinopsis.replace("[ENTER]", "\n")
+
+                        // Construir el mensaje base
+                        var mensajePublicidad = "¡Hola! Te recomiendo este increíble libro de mi colección física disponible para renta: \n\n" +
                                 "📚 *Título:* $titulo\n" +
                                 "✍️ *Autor:* $autor\n" +
                                 "🎭 *Géneros:* $generos\n" +
-                                "✨ *Disponibilidad:* $estado\n\n" +
-                                "¡Escríbeme al privado si te interesa leerlo para coordinar el alquiler! 📖"
+                                "✨ *Disponibilidad:* $estado\n"
+
+                        // 👉 NUEVO: Si hay sinopsis, la agregamos al mensaje
+                        if (sinopsisFormateada.trim().isNotEmpty()) {
+                            mensajePublicidad += "\n📖 *Sinopsis:*\n$sinopsisFormateada\n"
+                        }
+
+                        mensajePublicidad += "\n¡Escríbeme al privado si te interesa leerlo para coordinar el alquiler! 📖"
 
                         val intentCompartir = Intent(Intent.ACTION_SEND).apply {
                             type = "text/plain"

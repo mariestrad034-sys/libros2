@@ -60,6 +60,12 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, DevolverActivity::class.java)
             startActivity(intent)
         }
+
+        // Botón para ir a Historial de Pagos
+        binding.btnMenuHistorialPagos.setOnClickListener {
+            val intent = Intent(this, HistorialPagosActivity::class.java)
+            startActivity(intent)
+        }
     }
 
     override fun onResume() {
