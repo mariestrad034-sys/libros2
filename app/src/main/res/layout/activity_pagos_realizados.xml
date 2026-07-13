@@ -7,60 +7,25 @@
     android:padding="20dp"
     android:background="@color/colorFondo">
 
-    <!-- Encabezado -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="💰 Historial de Pagos"
+        android:text="✅ Pagos Realizados"
         android:textSize="26sp"
         android:textStyle="bold"
         android:textColor="@color/colorTextoPrincipal"
         android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="20dp" />
+        android:layout_marginBottom="25dp" />
 
-    <!-- Botones de navegación -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginBottom="20dp">
-
-        <Button
-            android:id="@+id/btnPendientes"
-            android:layout_width="0dp"
-            android:layout_height="50dp"
-            android:layout_weight="1"
-            android:text="⏳ Pendientes"
-            android:backgroundTint="#FF9800"
-            android:textColor="#FFFFFF"
-            android:textSize="14sp"
-            android:layout_marginRight="8dp" />
-
-        <Button
-            android:id="@+id/btnRealizados"
-            android:layout_width="0dp"
-            android:layout_height="50dp"
-            android:layout_weight="1"
-            android:text="✅ Realizados"
-            android:backgroundTint="#4CAF50"
-            android:textColor="#FFFFFF"
-            android:textSize="14sp"
-            android:layout_marginLeft="8dp" />
-
-    </LinearLayout>
-
-    <!-- Texto informativo -->
     <TextView
-        android:id="@+id/tvTituloPagos"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Préstamos pendientes de pago:"
+        android:text="Historial de pagos completados:"
         android:textSize="16sp"
         android:textStyle="bold"
         android:textColor="@color/colorTextoPrincipal"
         android:layout_marginBottom="15dp" />
 
-    <!-- ScrollView con la lista de préstamos -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -68,16 +33,15 @@
         android:layout_marginBottom="20dp">
 
         <LinearLayout
-            android:id="@+id/containerPagos"
+            android:id="@+id/containerPagosRealizados"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical" />
 
     </ScrollView>
 
-    <!-- Botón volver -->
     <Button
-        android:id="@+id/btnVolverHistorial"
+        android:id="@+id/btnVolverPagosRealizados"
         android:layout_width="match_parent"
         android:layout_height="55dp"
         android:text="⬅️ Volver"

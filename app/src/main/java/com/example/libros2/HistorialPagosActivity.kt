@@ -1,5 +1,6 @@
 package com.example.libros2
 
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.widget.CheckBox
@@ -31,6 +32,19 @@ class HistorialPagosActivity : AppCompatActivity() {
         // Cargar y mostrar préstamos pendientes
         cargarPrestamosPendientes()
 
+        // 👇 Botón Pendientes
+        binding.btnPendientes.setOnClickListener {
+            cargarPrestamosPendientes()
+            binding.tvTituloPagos.text = "Préstamos pendientes de pago:"
+        }
+
+        // 👇 Botón Realizados
+        binding.btnRealizados.setOnClickListener {
+            val intent = Intent(this, PagosRealizadosActivity::class.java)
+            startActivity(intent)
+        }
+
+        // 👇 Botón Volver
         binding.btnVolverHistorial.setOnClickListener {
             finish()
         }
@@ -81,7 +95,7 @@ class HistorialPagosActivity : AppCompatActivity() {
                         setMargins(0, margen, 0, margen)
                     }
                     setPadding(15, 15, 15, 15)
-                    setBackgroundColor(ContextCompat.getColor(this@HistorialPagosActivity, R.color.colorTarjeta))  // 👈 CORREGIDO
+                    setBackgroundColor(ContextCompat.getColor(this@HistorialPagosActivity, R.color.colorTarjeta))
                 }
 
                 // Información del préstamo
@@ -139,7 +153,7 @@ class HistorialPagosActivity : AppCompatActivity() {
                     ).apply {
                         setMargins(0, margen, 0, 0)
                     }
-                    setBackgroundColor(ContextCompat.getColor(this@HistorialPagosActivity, R.color.colorTextoSecundario))  // 👈 TAMBIÉN CORREGIDO
+                    setBackgroundColor(ContextCompat.getColor(this@HistorialPagosActivity, R.color.colorTextoSecundario))
                 }
                 binding.containerPagos.addView(divisoria)
             }

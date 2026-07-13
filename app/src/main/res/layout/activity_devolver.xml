@@ -1,64 +1,106 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="25dp"
-    android:gravity="center_horizontal"
     android:background="@color/colorFondo">
 
+    <!-- Título -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="🔄 Devolver un Libro"
-        android:textSize="24sp"
+        android:text="📤 Devolver un Libro"
+        android:textSize="28sp"
         android:textStyle="bold"
         android:textColor="@color/colorTextoPrincipal"
-        android:layout_marginBottom="20dp" />
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="30dp" />
 
+    <!-- Instrucción -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Selecciona los libros que te están devolviendo:"
+        android:text="Selecciona el libro a devolver:"
+        android:textSize="16sp"
+        android:textStyle="bold"
         android:textColor="@color/colorTextoPrincipal"
-        android:layout_marginBottom="10dp" />
+        android:layout_marginBottom="15dp" />
 
-    <!-- CONTENEDOR DINÁMICO DE CHECKBOXES -->
+    <!-- ScrollView con lista de libros prestados -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:layout_marginBottom="15dp"
-        android:background="@android:drawable/editbox_background"
-        android:backgroundTint="@color/colorTarjeta">
+        android:layout_marginBottom="20dp">
 
         <LinearLayout
             android:id="@+id/llLibrosPrestados"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="10dp" />
+            android:orientation="vertical" />
+
     </ScrollView>
 
+    <!-- Checkbox de confirmación de pago -->
+    <LinearLayout
+        android:id="@+id/containerPagoConfirmacion"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="15dp"
+        android:background="@drawable/caja_redondeada"
+        android:backgroundTint="@color/colorTarjeta"
+        android:layout_marginBottom="15dp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="💰 Información de Pago:"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="@color/colorTextoPrincipal"
+            android:layout_marginBottom="10dp" />
+
+        <TextView
+            android:id="@+id/tvMontoDevolucion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Monto a pagar: $0"
+            android:textSize="13sp"
+            android:textColor="@color/colorTextoSecundario"
+            android:layout_marginBottom="10dp" />
+
+        <CheckBox
+            android:id="@+id/cbPagoConfirmado"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="✅ Confirmar que fue pagado"
+            android:textSize="14sp"
+            android:textColor="@color/colorTextoPrincipal" />
+
+    </LinearLayout>
+
+    <!-- Botón devolver -->
     <Button
-        android:id="@+id/btnConfirmarDevolver"
+        android:id="@+id/btnDevolverLibro"
         android:layout_width="match_parent"
         android:layout_height="55dp"
         android:text="Confirmar Devolución"
         android:backgroundTint="#009688"
         android:textColor="#FFFFFF"
         android:textSize="16sp"
-        android:layout_marginBottom="15dp"/>
+        android:layout_marginBottom="12dp" />
 
+    <!-- Resultado -->
     <TextView
         android:id="@+id/tvResultadoDevolver"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text=""
-        android:textSize="15sp"
-        android:textStyle="bold"
-        android:gravity="center"
-        android:textColor="@color/colorTextoPrincipal"
-        android:layout_marginTop="10dp"/>
+        android:textSize="14sp"
+        android:textColor="@color/colorTextoSecundario"
+        android:gravity="center" />
+
 </LinearLayout>

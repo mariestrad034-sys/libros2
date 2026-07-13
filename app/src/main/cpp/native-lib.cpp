@@ -39,6 +39,18 @@ std::string desescaparSinopsis(const std::string& sinopsis) {
     return resultado;
 }
 
+// Función auxiliar: Guarda un pago en el histórico
+void guardarPagoEnHistorico(const std::string& rutaHistorico,
+                            const std::string& persona,
+                            const std::string& titulo,
+                            const std::string& monto) {
+    std::ofstream archivo(rutaHistorico, std::ios::app);
+    if (archivo.is_open()) {
+        archivo << persona << "|" << titulo << "|" << monto << "\n";
+        archivo.close();
+    }
+}
+
 // Función interna: Guarda en disco
 void guardarEnArchivo(const std::string& ruta, const std::vector<Libro>& biblioteca) {
     std::ofstream archivo(ruta, std::ios::trunc);
@@ -62,15 +74,12 @@ void guardarEnArchivo(const std::string& ruta, const std::vector<Libro>& bibliot
 std::vector<Libro> cargarDesdeArchivo(const std::string& ruta) {
     std::vector<Libro> biblioteca;
     std::ifstream archivo(ruta);
-
     if (archivo.is_open()) {
         std::string linea;
         while (std::getline(archivo, linea)) {
             if (linea.empty()) continue;
-
             std::stringstream ss(linea);
             std::string titulo, autor, persona, prestadoStr, generos, imagen, fechaDevolucion, sinopsis, monto;
-
             if (std::getline(ss, titulo, '|') &&
                 std::getline(ss, autor, '|') &&
                 std::getline(ss, persona, '|') &&
@@ -79,9 +88,7 @@ std::vector<Libro> cargarDesdeArchivo(const std::string& ruta) {
                 std::getline(ss, imagen, '|') &&
                 std::getline(ss, fechaDevolucion, '|') &&
                 std::getline(ss, sinopsis, '|')) {
-
                 std::getline(ss, monto);
-
                 biblioteca.push_back({
                                              titulo,
                                              autor,
@@ -118,19 +125,10 @@ Java_com_example_libros2_RegistrarActivity_registrarLibro(
     const char* cMonto = env->GetStringUTFChars(monto, nullptr);
 
     std::vector<Libro> biblioteca = cargarDesdeArchivo(cRuta);
-
     biblioteca.push_back({
-                                 cTitulo,
-                                 cAutor,
-                                 cPersona,
-                                 prestado == JNI_TRUE,
-                                 cGeneros,
-                                 cImagen,
-                                 cFecha,
-                                 cSinopsis,
-                                 cMonto
+                                 cTitulo, cAutor, cPersona, prestado == JNI_TRUE,
+                                 cGeneros, cImagen, cFecha, cSinopsis, cMonto
                          });
-
     guardarEnArchivo(cRuta, biblioteca);
 
     env->ReleaseStringUTFChars(ruta, cRuta);
@@ -148,7 +146,8 @@ Java_com_example_libros2_RegistrarActivity_registrarLibro(
 
 // 2. FILTRAR Y MOSTRAR LIBROS
 extern "C" JNIEXPORT jstring JNICALL
-Java_com_example_libros2_VerActivity_filtrarLibrosPorGenero(JNIEnv* env, jobject thiz, jstring ruta, jstring genero_filtro) {
+Java_com_example_libros2_VerActivity_filtrarLibrosPorGenero(
+        JNIEnv* env, jobject thiz, jstring ruta, jstring genero_filtro) {
 
     const char* cRuta = env->GetStringUTFChars(ruta, nullptr);
     const char* cFiltro = env->GetStringUTFChars(genero_filtro, nullptr);
@@ -162,7 +161,8 @@ Java_com_example_libros2_VerActivity_filtrarLibrosPorGenero(JNIEnv* env, jobject
         if (filtro == "Todos" || l.generos.find(filtro) != std::string::npos) {
             std::string estado = l.prestado ? "Prestado a: " + l.persona : "Disponible en estante";
             resultado += l.titulo + "|" + l.autor + "|" + l.generos + "|" + estado + "|"
-                         + l.imagen + "|" + l.fechaDevolucion + "|" + escaparSinopsis(l.sinopsis) + "|" + l.monto + ";";
+                         + l.imagen + "|" + l.fechaDevolucion + "|"
+                         + escaparSinopsis(l.sinopsis) + "|" + l.monto + ";";
             contador++;
         }
     }
@@ -173,13 +173,13 @@ Java_com_example_libros2_VerActivity_filtrarLibrosPorGenero(JNIEnv* env, jobject
     if (contador == 0) {
         return env->NewStringUTF("No hay libros registrados con este género.");
     }
-
     return env->NewStringUTF(resultado.c_str());
 }
 
 // 3. ELIMINAR LIBRO
 extern "C" JNIEXPORT jstring JNICALL
-Java_com_example_libros2_EliminarActivity_eliminarLibro(JNIEnv* env, jobject thiz, jstring ruta, jstring titulo) {
+Java_com_example_libros2_EliminarActivity_eliminarLibro(
+        JNIEnv* env, jobject thiz, jstring ruta, jstring titulo) {
 
     const char* cRuta = env->GetStringUTFChars(ruta, nullptr);
     const char* cTitulo = env->GetStringUTFChars(titulo, nullptr);
@@ -205,9 +205,10 @@ Java_com_example_libros2_EliminarActivity_eliminarLibro(JNIEnv* env, jobject thi
     return env->NewStringUTF(encontrado ? "Libro eliminado." : "No se encontró el libro.");
 }
 
-// 4. DEVOLVER LIBRO
+// 4. DEVOLVER LIBRO - CORREGIDO
 extern "C" JNIEXPORT jstring JNICALL
-Java_com_example_libros2_DevolverActivity_devolverLibro(JNIEnv* env, jobject thiz, jstring ruta, jstring titulo) {
+Java_com_example_libros2_DevolverActivity_devolverLibro(
+        JNIEnv* env, jobject thiz, jstring ruta, jstring titulo, jboolean pagado) {
 
     const char* cRuta = env->GetStringUTFChars(ruta, nullptr);
     const char* cTitulo = env->GetStringUTFChars(titulo, nullptr);
@@ -216,6 +217,8 @@ Java_com_example_libros2_DevolverActivity_devolverLibro(JNIEnv* env, jobject thi
     std::string objetivo(cTitulo);
     bool encontrado = false;
     bool yaEstabaDisponible = false;
+    std::string personaPrestamo = "";
+    std::string montoPrestamo = "";
 
     for (auto& l : biblioteca) {
         if (l.titulo == objetivo) {
@@ -223,9 +226,32 @@ Java_com_example_libros2_DevolverActivity_devolverLibro(JNIEnv* env, jobject thi
             if (!l.prestado) {
                 yaEstabaDisponible = true;
             } else {
-                l.prestado = false;
-                l.persona = "Ninguno";
-                l.fechaDevolucion = "";
+                // Guardar datos antes de limpiar
+                personaPrestamo = l.persona;
+                montoPrestamo = l.monto;
+
+                if (pagado == JNI_TRUE) {
+                    // ✅ PAGADO: Limpiar todo completamente
+                    l.prestado = false;
+                    l.persona = "Ninguno";
+                    l.monto = "0";
+                    l.fechaDevolucion = "";
+
+                    // Guardar en histórico de pagos realizados
+                    if (!montoPrestamo.empty() && montoPrestamo != "0") {
+                        guardarPagoEnHistorico(
+                                std::string(cRuta) + "_pagos",
+                                personaPrestamo,
+                                objetivo,
+                                montoPrestamo
+                        );
+                    }
+                } else {
+                    // ❌ NO PAGADO: Solo marcar como devuelto, mantener monto pendiente
+                    l.prestado = false;
+                    l.fechaDevolucion = "";
+                    // ⚠️ NO limpiamos persona ni monto - quedan en el historial
+                }
             }
             break;
         }
@@ -238,7 +264,11 @@ Java_com_example_libros2_DevolverActivity_devolverLibro(JNIEnv* env, jobject thi
         mensaje = "El libro \"" + objetivo + "\" ya se encontraba disponible en el estante.";
     } else {
         guardarEnArchivo(cRuta, biblioteca);
-        mensaje = "¡Éxito! El libro \"" + objetivo + "\" ha sido devuelto y ya está disponible.";
+        if (pagado == JNI_TRUE) {
+            mensaje = "✅ Libro devuelto y pago registrado en histórico.";
+        } else {
+            mensaje = "📚 Libro devuelto. Pago pendiente en historial.";
+        }
     }
 
     env->ReleaseStringUTFChars(ruta, cRuta);
@@ -249,25 +279,24 @@ Java_com_example_libros2_DevolverActivity_devolverLibro(JNIEnv* env, jobject thi
 
 // 5. OBTENER ESTADÍSTICAS
 extern "C" JNIEXPORT jstring JNICALL
-Java_com_example_libros2_MainActivity_obtenerEstadisticas(JNIEnv* env, jobject thiz, jstring ruta) {
+Java_com_example_libros2_MainActivity_obtenerEstadisticas(
+        JNIEnv* env, jobject thiz, jstring ruta) {
 
     const char* cRuta = env->GetStringUTFChars(ruta, nullptr);
-
     std::vector<Libro> biblioteca = cargarDesdeArchivo(cRuta);
+
     int total = biblioteca.size();
     int prestados = 0;
-
     for (const auto& l : biblioteca) {
         if (l.prestado) prestados++;
     }
-
     int disponibles = total - prestados;
+
     std::string dataEstadisticas = std::to_string(total) + "-" +
                                    std::to_string(disponibles) + "-" +
                                    std::to_string(prestados);
 
     env->ReleaseStringUTFChars(ruta, cRuta);
-
     return env->NewStringUTF(dataEstadisticas.c_str());
 }
 
@@ -326,18 +355,22 @@ Java_com_example_libros2_PrestarActivity_prestarLibro(
     return env->NewStringUTF(mensaje.c_str());
 }
 
-// 7. OBTENER PRÉSTAMOS PENDIENTES DE PAGO
+// 7. OBTENER PRÉSTAMOS PENDIENTES (incluyendo devueltos pero no pagados)
 extern "C" JNIEXPORT jstring JNICALL
-Java_com_example_libros2_HistorialPagosActivity_obtenerPrestamosPendientes(JNIEnv* env, jobject thiz, jstring ruta) {
+Java_com_example_libros2_HistorialPagosActivity_obtenerPrestamosPendientes(
+        JNIEnv* env, jobject thiz, jstring ruta) {
 
     const char* cRuta = env->GetStringUTFChars(ruta, nullptr);
     std::vector<Libro> biblioteca = cargarDesdeArchivo(cRuta);
+
     std::string resultado = "";
     int contador = 0;
 
     for (const auto& l : biblioteca) {
-        if (l.prestado && !l.monto.empty() && l.monto != "0") {
-            resultado += l.persona + "|" + l.titulo + "|" + l.monto + "|no_pagado;";
+        // Mostrar cualquier libro que tenga monto > 0
+        if (!l.monto.empty() && l.monto != "0") {
+            std::string estado = l.prestado ? "Prestado" : "Devuelto (Pago pendiente)";
+            resultado += l.persona + "|" + l.titulo + "|" + l.monto + "|" + estado + ";";
             contador++;
         }
     }
@@ -347,13 +380,13 @@ Java_com_example_libros2_HistorialPagosActivity_obtenerPrestamosPendientes(JNIEn
     if (contador == 0) {
         return env->NewStringUTF("No hay préstamos pendientes de pago.");
     }
-
     return env->NewStringUTF(resultado.c_str());
 }
 
-// 8. MARCAR PRÉSTAMO COMO PAGADO
+// 8. MARCAR PRÉSTAMO COMO PAGADO - CORREGIDO
 extern "C" JNIEXPORT jstring JNICALL
-Java_com_example_libros2_HistorialPagosActivity_marcarPagado(JNIEnv* env, jobject thiz, jstring ruta, jstring titulo, jstring persona) {
+Java_com_example_libros2_HistorialPagosActivity_marcarPagado(
+        JNIEnv* env, jobject thiz, jstring ruta, jstring titulo, jstring persona) {
 
     const char* cRuta = env->GetStringUTFChars(ruta, nullptr);
     const char* cTitulo = env->GetStringUTFChars(titulo, nullptr);
@@ -363,13 +396,14 @@ Java_com_example_libros2_HistorialPagosActivity_marcarPagado(JNIEnv* env, jobjec
     std::string objetivo(cTitulo);
     std::string personaObj(cPersona);
     bool encontrado = false;
+    std::string monto = "";
 
     for (auto& l : biblioteca) {
-        if (l.titulo == objetivo && l.persona == personaObj && l.prestado) {
-            l.prestado = false;
-            l.persona = "Ninguno";
-            l.fechaDevolucion = "";
-            l.monto = "0";
+        if (l.titulo == objetivo && l.persona == personaObj &&
+            !l.monto.empty() && l.monto != "0") {
+
+            monto = l.monto;
+            l.monto = "0"; // Marcar como pagado
             encontrado = true;
             break;
         }
@@ -377,11 +411,53 @@ Java_com_example_libros2_HistorialPagosActivity_marcarPagado(JNIEnv* env, jobjec
 
     if (encontrado) {
         guardarEnArchivo(cRuta, biblioteca);
+
+        // ✅ GUARDAR EN HISTÓRICO DE PAGOS REALIZADOS
+        guardarPagoEnHistorico(
+                std::string(cRuta) + "_pagos",
+                personaObj,
+                objetivo,
+                monto
+        );
     }
 
     env->ReleaseStringUTFChars(ruta, cRuta);
     env->ReleaseStringUTFChars(titulo, cTitulo);
     env->ReleaseStringUTFChars(persona, cPersona);
 
-    return env->NewStringUTF(encontrado ? "✅ Pago registrado correctamente." : "❌ No se pudo registrar el pago.");
+    return env->NewStringUTF(encontrado ?
+                             "✅ Pago registrado en histórico." :
+                             "❌ No se pudo registrar el pago.");
+}
+
+// 9. OBTENER PAGOS REALIZADOS - CORREGIDO
+extern "C" JNIEXPORT jstring JNICALL
+Java_com_example_libros2_PagosRealizadosActivity_obtenerPagosRealizados(
+        JNIEnv* env, jobject thiz, jstring ruta) {
+
+    const char* cRuta = env->GetStringUTFChars(ruta, nullptr);
+
+    std::string resultado = "";
+    int contador = 0;
+
+    // Leer archivo de histórico de pagos
+    std::ifstream archivoHistorico(std::string(cRuta) + "_pagos");
+    if (archivoHistorico.is_open()) {
+        std::string linea;
+        while (std::getline(archivoHistorico, linea)) {
+            if (!linea.empty()) {
+                // El formato en el archivo es: persona|titulo|monto
+                resultado += linea + ";";
+                contador++;
+            }
+        }
+        archivoHistorico.close();
+    }
+
+    env->ReleaseStringUTFChars(ruta, cRuta);
+
+    if (contador == 0) {
+        return env->NewStringUTF("No hay pagos realizados.");
+    }
+    return env->NewStringUTF(resultado.c_str());
 }
